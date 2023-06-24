@@ -15,7 +15,7 @@ multiple players, using the underlying WDS game to adjudicate combat.
 
 ## How do I use it?
 
-A full manual is included with the current release.
+A full [manual](https://github.com/musurca/envoy/blob/master/manual/Envoy_Manual_v10.pdf) is included.
 
 ## Compatibility
 
