@@ -88,6 +88,14 @@ namespace WDS_Dispatches
                 }
 
                 if (_curRecipient != null) {
+                    Location recipLoc = (Location)_curRecipient["location"];
+                    Location senderLoc = (Location)_curSender["location"];
+
+                    if(!recipLoc.IsPresent() || !senderLoc.IsPresent()) {
+                        canSendDispatches = false;
+                        DisableSending();
+                    }
+
                     string senderName = GetSender();
                     string receipName = GetRecipient();
 
@@ -188,37 +196,44 @@ namespace WDS_Dispatches
                     }
 
                     // Estimate delivery time
-                    Location a = (Location)_curSender["location"];
-                    Location b;
-                    int distance = 0;
-                    if (_recipientChain.Count > 0) {
-                        foreach (string recipient in _recipientChain) {
-                            Dictionary<string, object> unitInfo = _scenarioData.GetUnitDataByNodeName(recipient);
-                            b = (Location)unitInfo["location"];
-                            distance += a.DistanceTo(b);
-                            a = b;
+                    string final_delivery_eta = "";
+
+                    Location a = senderLoc;
+                    if (senderLoc.IsPresent() && recipLoc.IsPresent()) {
+                        Location b;
+                        int distance = 0;
+                        if (_recipientChain.Count > 0) {
+                            foreach (string recipient in _recipientChain) {
+                                Dictionary<string, object> unitInfo = _scenarioData.GetUnitDataByNodeName(recipient);
+                                b = (Location)unitInfo["location"];
+                                if (b.IsPresent()) {
+                                    distance += a.DistanceTo(b);
+                                    a = b;
+                                }
+                            }
                         }
-                    }
-                    b = (Location)_curRecipient["location"];
-                    distance += a.DistanceTo(b);
+                        b = (Location)_curRecipient["location"];
+                        distance += a.DistanceTo(b);
 
-                    int minDelay = _dispatchState.Settings.MinimumDispatchDelay;
-                    int time = distance / _dispatchState.Settings.DispatchSpeed + 1;
-                    time = time < minDelay ? minDelay : time;
+                        int minDelay = _dispatchState.Settings.MinimumDispatchDelay;
+                        int time = distance / _dispatchState.Settings.DispatchSpeed + 1;
+                        time = time < minDelay ? minDelay : time;
 
-                    string interval = " turn";
-                    if (time != 1) {
-                        interval += "s";
+                        string interval = " turn";
+                        if (time != 1) {
+                            interval += "s";
+                        }
+                        final_delivery_eta = time + interval;
                     }
 
                     if (labelDispatchETA.InvokeRequired) {
                         labelDispatchETA.Invoke(
                             (MethodInvoker)(
-                                () => labelDispatchETA.Text = time + interval
+                                () => labelDispatchETA.Text = final_delivery_eta
                             )
                         );
                     } else {
-                        labelDispatchETA.Text = time + interval;
+                        labelDispatchETA.Text = final_delivery_eta;
                     }
 
                     return;
@@ -289,6 +304,9 @@ namespace WDS_Dispatches
                 labelMessageRecipient.Text = (string)_curRecipient["message_name"] + " " + loc.ToString();
 
                 UpdateSelection();
+            } else {
+                _curRecipient = null;
+                labelMessageRecipient.Text = "(no one)";
             }
         }
 
@@ -311,6 +329,9 @@ namespace WDS_Dispatches
                 labelMessageSender.Text = (string)_curSender["message_name"] + " " + loc.ToString();
 
                 UpdateSelection();
+            } else {
+                _curSender = null;
+                labelMessageSender.Text = "(no one)";
             }
         }
 
@@ -469,7 +490,7 @@ namespace WDS_Dispatches
                 OpenFileDialog dialog = new OpenFileDialog()
             ) {
                 dialog.InitialDirectory = @"C:\WDS";
-                dialog.Filter = "Battle files (*.btl)|*.btl";
+                dialog.Filter = "Battle files (*.btl;*.bte)|*.btl;*.bte";
                 dialog.FilterIndex = 0;
                 dialog.RestoreDirectory = true;
 
@@ -500,6 +521,8 @@ namespace WDS_Dispatches
 
                 // Set default sender to overall commander
                 treeSender.SelectedNode = treeSender.Nodes[0];
+                treeRecipient.SelectedNode = null;
+                SelectRecipient();
                 SelectSender();
 
                 editToolStripMenuItem.Enabled = true;
@@ -638,7 +661,11 @@ namespace WDS_Dispatches
         }
 
         private void howToUseToolStripMenuItem_Click(object sender, EventArgs e) {
-            System.Diagnostics.Process.Start("Envoy_Manual_v10.pdf");
+            try {
+                System.Diagnostics.Process.Start("Envoy_Manual_v10.pdf");
+            } catch(Exception ex) {
+                // do nothing
+            }
         }
     }
 }

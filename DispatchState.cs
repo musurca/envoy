@@ -128,8 +128,13 @@ namespace WDS_Dispatches
         public void Serialize() {
             string json = JsonConvert.SerializeObject(this, Formatting.Indented);
 
+            string ext = "dispatch";
+            if(Scenario.IsPBEM()) {
+                ext += "_pem";
+            }
+
             File.WriteAllText(
-                Path.ChangeExtension(Scenario.GetFilenameFullPath(), "dispatch"), 
+                Path.ChangeExtension(Scenario.GetFilenameFullPath(), ext), 
                 json,
                 Encoding.GetEncoding("ISO-8859-1")
             );
@@ -139,7 +144,12 @@ namespace WDS_Dispatches
             ScenarioData sd = new ScenarioData();
             sd.LoadScenario(filename, treeRecip, treeSender);
 
-            string dispatch_file = Path.ChangeExtension(filename, "dispatch");
+            string ext = "dispatch";
+            if(sd.IsPBEM()) {
+                ext += "_pem";
+            }
+
+            string dispatch_file = Path.ChangeExtension(filename, ext);
             if(File.Exists(dispatch_file)) {
                 string json = File.ReadAllText(
                     dispatch_file, 
@@ -229,10 +239,11 @@ namespace WDS_Dispatches
         }
 
         public bool SendDispatch(string sender, string recipient, string message, List<string> recipientChain) {
-            if(DispatchesSentBy(sender) < Settings.DispatchesPerLeader) { // max dispatches per sender
-                IncDispatchCount(sender);
+            Location sender_location = Scenario.GetUnitLocation(sender);
 
-                Location sender_location = Scenario.GetUnitLocation(sender);
+            if (sender_location.IsPresent() && 
+                DispatchesSentBy(sender) < Settings.DispatchesPerLeader) { // max dispatches per sender
+                IncDispatchCount(sender);
 
                 Dispatches.Add(
                     new Dispatch(
@@ -280,73 +291,106 @@ namespace WDS_Dispatches
 
             List<Dispatch> dispatchesToRemove = new List<Dispatch>();
 
+            List<Dispatch> dispatchesToAdd = new List<Dispatch>();
+
             foreach (Dispatch dispatch in Dispatches) {
                 dispatch.Tick();
 
                 List<string> recipChain = dispatch.RecipientChain;
                 Location recip_location = Scenario.GetUnitLocation(dispatch.Recipient);
+                if (!recip_location.IsPresent()) {
+                    // recipient has left the scenario or has been killed
+                    // dispatch will not be delivered
+                    Location sender_location = Scenario.GetUnitLocation(dispatch.Sender);
+                    if (sender_location.IsPresent()) {
+                        dispatchesToAdd.Add(
+                            new Dispatch(
+                                "aide de camp",
+                                dispatch.Sender,
+                                "The following order could not be delivered to " +
+                                    dispatch.Recipient +
+                                    ", whose HQ could not be found:\n\n\"" +
+                                    dispatch.Message + "\"",
+                                dispatch.CurrentLocation,
+                                CurrentTurn,
+                                new List<string>()
+                            )
+                        );
+                    }
+                    dispatchesToRemove.Add(dispatch);
+                } else {
+                    // we've reached our recipient if we're at the recipient's location, and have
+                    // exhausted our recipient chain, or else are not using strict chain of command
+                    bool recipientReached = dispatch.CurrentLocation.Equals(recip_location) &&
+                        (recipChain.Count == 0 || !Settings.UseChainOfCommand);
 
-                // we've reached our recipient if we're at the recipient's location, and have
-                // exhausted our recipient chain, or else are not using strict chain of command
-                bool recipientReached = dispatch.CurrentLocation.Equals(recip_location) && 
-                    (recipChain.Count == 0 || !Settings.UseChainOfCommand);
-
-                if(!recipientReached) {
-                    // If we haven't already reached our recipient
-                    int chance = _rnd.Next(1, 100);
-                    if (chance <= Settings.ChanceDispatchLost) {
-                        // Dispatch was lost!
-                        dispatchesToRemove.Add(dispatch);
-                    } else {
-                        Location target_location;
-                        if (recipChain.Count > 0 && Settings.UseChainOfCommand) {
-                            target_location = Scenario.GetUnitLocation(recipChain[0]);
+                    if (!recipientReached) {
+                        // If we haven't already reached our recipient
+                        int chance = _rnd.Next(1, 100);
+                        if (chance <= Settings.ChanceDispatchLost) {
+                            // Dispatch was lost!
+                            dispatchesToRemove.Add(dispatch);
                         } else {
-                            target_location = recip_location;
-                        }
-
-                        for (int i = 0; i < Settings.DispatchSpeed; i++) {
-                            dispatch.CurrentLocation = dispatch.CurrentLocation.MoveTowards(target_location, 1);
-
-                            if (dispatch.CurrentLocation.Equals(target_location)) {
-                                if (recipChain.Count > 0 && Settings.UseChainOfCommand) {
+                            Location target_location;
+                            if (recipChain.Count > 0 && Settings.UseChainOfCommand) {
+                                target_location = Scenario.GetUnitLocation(recipChain[0]);
+                                while(!target_location.IsPresent()) {
+                                    // Route around any intervening HQs that may have disappeared
                                     recipChain.RemoveAt(0);
                                     if (recipChain.Count > 0) {
                                         target_location = Scenario.GetUnitLocation(recipChain[0]);
                                     } else {
                                         target_location = recip_location;
-                                        if(dispatch.CurrentLocation.Equals(recip_location)) {
-                                            recipientReached = true;
-                                            break;
-                                        }
+                                        break;
                                     }
-                                } else {
-                                    // we've arrived
-                                    recipientReached = true;
-                                    break;
                                 }
                             } else {
-                                if (Settings.InterdictionChance > 0) {
-                                    if (Scenario.InEnemyZOC(dispatch.CurrentLocation)) {
-                                        chance = _rnd.Next(1, 100);
-                                        if (chance <= Settings.InterdictionChance) {
-                                            // Dispatch was interdicted!
-                                            dispatchesToRemove.Add(dispatch);
-                                            break;
+                                target_location = recip_location;
+                            }
+
+                            for (int i = 0; i < Settings.DispatchSpeed; i++) {
+                                dispatch.CurrentLocation = dispatch.CurrentLocation.MoveTowards(target_location, 1);
+
+                                if (dispatch.CurrentLocation.Equals(target_location)) {
+                                    if (recipChain.Count > 0 && Settings.UseChainOfCommand) {
+                                        recipChain.RemoveAt(0);
+                                        if (recipChain.Count > 0) {
+                                            target_location = Scenario.GetUnitLocation(recipChain[0]);
+                                        } else {
+                                            target_location = recip_location;
+                                            if (dispatch.CurrentLocation.Equals(recip_location)) {
+                                                recipientReached = true;
+                                                break;
+                                            }
+                                        }
+                                    } else {
+                                        // we've arrived
+                                        recipientReached = true;
+                                        break;
+                                    }
+                                } else {
+                                    if (Settings.InterdictionChance > 0) {
+                                        if (Scenario.InEnemyZOC(dispatch.CurrentLocation)) {
+                                            chance = _rnd.Next(1, 100);
+                                            if (chance <= Settings.InterdictionChance) {
+                                                // Dispatch was interdicted!
+                                                dispatchesToRemove.Add(dispatch);
+                                                break;
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                if (recipientReached) {
-                    // Dispatch has arrived
-                    if (dispatch.TurnsInTransit >= Settings.MinimumDispatchDelay) {
-                        // Deliver it
-                        dispatchesReceivedThisTurn.Add(dispatch);
-                        dispatchesToRemove.Add(dispatch);
+                    if (recipientReached) {
+                        // Dispatch has arrived
+                        if (dispatch.TurnsInTransit >= Settings.MinimumDispatchDelay) {
+                            // Deliver it
+                            dispatchesReceivedThisTurn.Add(dispatch);
+                            dispatchesToRemove.Add(dispatch);
+                        }
                     }
                 }
             }
@@ -355,6 +399,9 @@ namespace WDS_Dispatches
                 Dispatches.Remove(dispatch);
             }
             dispatchesToRemove.Clear();
+            foreach(Dispatch dispatch in dispatchesToAdd) {
+                Dispatches.Add(dispatch);
+            }
 
             DispatchesReceived.Add(CurrentTurn, dispatchesReceivedThisTurn);
         }

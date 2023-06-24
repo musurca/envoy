@@ -101,11 +101,21 @@ namespace WDS_Dispatches
     public class Location {
         public int X { get; set; }
         public int Y { get; set; }
-        public override string ToString() { return "(" + X + ", " + Y + ")"; }
+        public override string ToString() { 
+            if (!IsPresent()) {
+                return "(not present)";
+            }
+
+            return "(" + X + ", " + Y + ")"; 
+        }
 
         public Location(int x = -1, int y = -1)
         {
             Set(x, y);
+        }
+
+        public bool IsPresent() {
+            return (X != -1 && Y != -1);
         }
 
         private static Location evenq_to_axial(Location hex) {
@@ -128,6 +138,10 @@ namespace WDS_Dispatches
         }
 
         public int DistanceTo(Location b) {
+            if(!IsPresent() || !b.IsPresent()) {
+                throw new Exception("Invalid (off-map) Location!");
+            }
+
             Location a_axial = evenq_to_axial(this);
             Location b_axial = evenq_to_axial(b);
 
