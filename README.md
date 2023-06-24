@@ -1,6 +1,6 @@
 # Envoy
 
-**Envoy** is a utility for Wargame Design Studio’s series of historical wargames that
+**Envoy** is a utility for [Wargame Design Studio](http://www.wargameds.com)’s series of historical wargames that
 simulates command and control with order delay. Often, decisive battles turned not on
 weapons and men, but on time and information: who knew what, and when? Were the correct
 orders issued—and received in time to make a difference?
