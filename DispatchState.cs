@@ -240,9 +240,12 @@ namespace WDS_Dispatches
 
         public bool SendDispatch(string sender, string recipient, string message, List<string> recipientChain) {
             Location sender_location = Scenario.GetUnitLocation(sender);
+            Location recipient_location = Scenario.GetUnitLocation(recipient);
 
             if (sender_location.IsPresent() && 
-                DispatchesSentBy(sender) < Settings.DispatchesPerLeader) { // max dispatches per sender
+                recipient_location.IsPresent() &&
+                DispatchesSentBy(sender) < Settings.DispatchesPerLeader
+            ) { // max dispatches per sender
                 IncDispatchCount(sender);
 
                 Dispatches.Add(
@@ -355,13 +358,24 @@ namespace WDS_Dispatches
                                     if (recipChain.Count > 0 && Settings.UseChainOfCommand) {
                                         recipChain.RemoveAt(0);
                                         if (recipChain.Count > 0) {
-                                            target_location = Scenario.GetUnitLocation(recipChain[0]);
+                                            Location recipTest = Scenario.GetUnitLocation(recipChain[0]);
+                                            while (!recipTest.IsPresent()) {
+                                                // Route around any intervening HQs that may have disappeared
+                                                recipChain.RemoveAt(0);
+                                                if (recipChain.Count > 0) {
+                                                    recipTest = Scenario.GetUnitLocation(recipChain[0]);
+                                                } else {
+                                                    recipTest = recip_location;
+                                                    break;
+                                                }
+                                            }
+                                            target_location = recipTest;
                                         } else {
                                             target_location = recip_location;
-                                            if (dispatch.CurrentLocation.Equals(recip_location)) {
-                                                recipientReached = true;
-                                                break;
-                                            }
+                                        }
+                                        if (dispatch.CurrentLocation.Equals(recip_location)) {
+                                            recipientReached = true;
+                                            break;
                                         }
                                     } else {
                                         // we've arrived

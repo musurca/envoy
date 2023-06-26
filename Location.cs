@@ -139,7 +139,7 @@ namespace WDS_Dispatches
 
         public int DistanceTo(Location b) {
             if(!IsPresent() || !b.IsPresent()) {
-                throw new Exception("Invalid (off-map) Location!");
+                return 999999;
             }
 
             Location a_axial = evenq_to_axial(this);

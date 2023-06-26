@@ -667,8 +667,8 @@ namespace WDS_Dispatches
             List<Dictionary<string, object>> units = _unitData.Values.ToList();
             foreach(Dictionary<string, object> unit in units) {
                 bool isFriendly = (bool)unit["friendly"];
-                if(!isFriendly) {
-                    Location enemy_loc = (Location)unit["location"];
+                Location enemy_loc = (Location)unit["location"];
+                if(!isFriendly && enemy_loc.IsPresent()) {
                     if(loc.DistanceTo(enemy_loc) <= 1) {
                         return true;
                     }

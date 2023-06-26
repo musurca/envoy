@@ -84,7 +84,7 @@
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(28, 13);
             this.label5.TabIndex = 5;
-            this.label5.Text = "v1.0";
+            this.label5.Text = "v1.01";
             // 
             // About
             // 
@@ -92,7 +92,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnOK;
-            this.ClientSize = new System.Drawing.Size(197, 172);
+            this.ClientSize = new System.Drawing.Size(193, 168);
             this.ControlBox = false;
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
