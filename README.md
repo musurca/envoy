@@ -1,5 +1,7 @@
 # Envoy
 
+**[DOWNLOAD LATEST RELEASE (v1.0)](https://github.com/musurca/envoy/releases/download/1.0/Envoy_v1.0.zip)**
+
 **Envoy** is a utility for [Wargame Design Studio](http://www.wargameds.com)’s series of historical wargames that
 simulates command and control with order delay. Often, decisive battles turned not on
 weapons and men, but on time and information: who knew what, and when? Were the correct
@@ -19,7 +21,7 @@ A full [manual](https://github.com/musurca/envoy/blob/master/manual/Envoy_Manual
 
 ## Compatibility
 
-**Envoy** is currently compatible with the WDS Napoleonic, Renaissance, and Musket &
+**Envoy** is currently compatible with the WDS Napoleonic + Musket &
 Pike series. Support for the Panzer & Modern Campaigns series may be forthcoming.
 
 PBEM games are supported, as long as they are unencrypted. (In the WDS game,
