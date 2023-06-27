@@ -1,6 +1,6 @@
 # Envoy
 
-**[DOWNLOAD LATEST RELEASE (v1.01)](https://github.com/musurca/envoy/releases/download/1.01/Envoy.v1.01.zip)**
+**[DOWNLOAD LATEST RELEASE (v1.02)](https://github.com/musurca/envoy/releases/download/1.02/Envoy.v1.02.zip)**
 
 **Envoy** is a utility for [Wargame Design Studio](http://www.wargameds.com)’s series of historical wargames that
 simulates command and control with order delay. Often, decisive battles turned not on
@@ -21,12 +21,15 @@ A full [manual](https://github.com/musurca/envoy/blob/master/manual/Envoy_Manual
 
 ## Compatibility
 
-**Envoy** is currently compatible with the WDS Napoleonic and Musket & Pike series. (It may also support Civil War Battles, although it hasn’t been tested.) Support for the Panzer & Modern Campaigns series may be forthcoming.
+**Envoy** is currently compatible with the WDS Napoleonic, Musket & Pike, and Civil War Battles series. Support for the Panzer & Modern Campaigns series may be forthcoming.
 
 PBEM games are supported, as long as they are unencrypted. (In the WDS game,
 *Settings -> PBEM Encryption* should be unchecked.)
 
 ## Version History
+
+v1.02 (6/26/2023)
+- fixed bug with Civil War Battles scenarios
 
 v1.01 (6/26/2023)
 - fixed bug with off-map message recipients in a message chain
