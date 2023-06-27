@@ -450,8 +450,11 @@ namespace WDS_Dispatches
             for (int i = 0; i < 2*height; i++) {
                 ReadString(map);
             }
+
+            int layers = fileVersion == 1 ? 10 : 12;
+
             // Read layer data, then ignore it
-            for (int j = 0; j < 12; j++) {
+            for (int j = 0; j < layers; j++) {
                 if (ReadNum(map) == 1 ) {
                     for (int i = 0; i < height; i++) {
                         ReadString(map);
@@ -463,24 +466,26 @@ namespace WDS_Dispatches
             string objective_str = ReadString(map);
             while(objective_str != "") {
                 string[] items = objective_str.Split();
-                string objective_name = items[5];
-                for(int i=6; i < items.Count(); i++) {
-                    objective_name = objective_name + " " + items[i];
-                }
-
-                float obj_x = float.Parse(items[0]);
-                float obj_y = float.Parse(items[1]);
-
-                if(x != -1) {
-                    if(obj_x < x || obj_x > (x+w) || obj_y < y || obj_y > (y+h)) {
-                        objective_str = ReadString(map);
-                        continue;
+                if (items.Count() > 5) {
+                    string objective_name = items[5];
+                    for (int i = 6; i < items.Count(); i++) {
+                        objective_name = objective_name + " " + items[i];
                     }
-                }
 
-                // No duplicate objective names
-                if (!_objectives.Contains(objective_name)) {
-                    _objectives.Add(objective_name);
+                    float obj_x = float.Parse(items[0]);
+                    float obj_y = float.Parse(items[1]);
+
+                    if (x != -1) {
+                        if (obj_x < x || obj_x > (x + w) || obj_y < y || obj_y > (y + h)) {
+                            objective_str = ReadString(map);
+                            continue;
+                        }
+                    }
+
+                    // No duplicate objective names
+                    if (!_objectives.Contains(objective_name)) {
+                        _objectives.Add(objective_name);
+                    }
                 }
 
                 objective_str = ReadString(map);
