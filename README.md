@@ -1,6 +1,6 @@
 # Envoy
 
-**[DOWNLOAD LATEST RELEASE (v1.02)](https://github.com/musurca/envoy/releases/download/1.02/Envoy.v1.02.zip)**
+**[DOWNLOAD LATEST RELEASE (v1.03)](https://github.com/musurca/envoy/releases/download/1.03/Envoy.v1.03.zip)**
 
 **Envoy** is a utility for [Wargame Design Studio](http://www.wargameds.com)’s series of historical wargames that
 simulates command and control with order delay. Often, decisive battles turned not on
@@ -27,6 +27,9 @@ PBEM games are supported, as long as they are unencrypted. (In the WDS game,
 *Settings -> PBEM Encryption* should be unchecked.)
 
 ## Version History
+
+v1.03 (6/28/2023)
+- fixed bug with parsing some OOBs
 
 v1.02 (6/26/2023)
 - fixed bug with Civil War Battles scenarios
