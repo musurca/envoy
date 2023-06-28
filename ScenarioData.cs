@@ -726,7 +726,7 @@ namespace WDS_Dispatches
             bool leaderFound = false;
             int leaderIndex = 0;
             Dictionary<string, object> leaderUnit = null;
-            do {
+            while (!leaderFound && leaderIndex < formation.Count()) {
                 Dictionary<string, object> test_unit = formation[leaderIndex];
                 if ((string)test_unit["type"] == "Leader") {
                     string leaderCode = currentCode + "." + (leaderIndex + 1);
@@ -740,48 +740,70 @@ namespace WDS_Dispatches
                     // have run out of leaders
                     break;
                 }
+            }
 
-            } while (!leaderFound && leaderIndex < formation.Count());
+            string nodeName, messageName;
+
+            // no leaders present? find A leader
+            if (!leaderFound) {
+                for (int j = 0; j < formation.Count(); j++) {
+                    Dictionary<string, object> test_unit = formation[j];
+                    if ((string)test_unit["type"] == "Leader") {
+                        leaderIndex = j;
+                        leaderUnit = test_unit;
+                        leaderFound = true;
+                        break;
+                    }
+                }
+            }
 
             if (!leaderFound) {
-                leaderIndex = 0;
-                leaderUnit = formation[0];
+                // no leaders present, find a unit instead
+                for (int i = 0; i < formation.Count(); i++) {
+                    Dictionary<string, object> test_unit = formation[i];
+                    if ((string)test_unit["type"] == "Unit") {
+                        leaderIndex = i;
+                        leaderFound = true;
+                        break;
+                    }
+                }
+                nodeName = GetAvailableUnitName(unitName);
+                messageName = unitName + ", " + parentUnitname;
+
+                if (!leaderFound) {
+                    leaderIndex = -1;
+                    // Add a dummy unit
+                    AddUnit(
+                        currentCode + ".0",
+                        nodeName,
+                        parentNodename,
+                        messageName,
+                        new Location(),
+                        friendly,
+                        "Leader"
+                    );
+                }
+            } else {
+                string leaderName = (string)leaderUnit["name"];
+                nodeName = GetAvailableUnitName(unitName + " (" + leaderName + ")");
+                messageName = leaderName + ", " + unitName;
+
+                // Index node to unit data
+                AddUnit(
+                    currentCode + "." + (leaderIndex + 1),
+                    nodeName,
+                    parentNodename,
+                    messageName,
+                    new Location(),
+                    friendly,
+                    "Leader"
+                );
             }
 
-            //Dictionary<string, object> firstUnit = formation[0];
-            string uType = (string)leaderUnit["type"];
-            string nodeName, messageName;
-            if (uType == "Leader") {
-                string leaderName = (string)leaderUnit["name"];
-                nodeName = unitName + " (" + leaderName + ")";
-                messageName = leaderName + ", " + unitName;
-            } else {
-                nodeName = unitName;
-                messageName = unitName + ", " + parentUnitname;
-            }
-            int dupUnitNames = 0;
-            string origNodeName = nodeName;
-            while (_unitData.ContainsKey(nodeName)) {
-                dupUnitNames++;
-                // Possible another army has an identical unit name
-                nodeName = origNodeName + " (" + dupUnitNames + ")";
-            }
             if (friendly) {
                 // show it on the list
                 headNode.Nodes.Add(nodeName);
             }
-
-            // Index node to unit data
-            Dictionary<string, object> unitDict = new Dictionary<string, object> {
-                { "code",           currentCode + "." + (leaderIndex+1) },
-                { "node_name",      nodeName },
-                { "parent_node",    parentNodename },
-                { "message_name",   messageName },
-                { "location",       new Location() },
-                { "friendly",       friendly },
-                { "type",           "Leader" }
-            };
-            _unitData.Add(nodeName, unitDict);
 
             TreeNode subNode;
             if (friendly) {
@@ -790,7 +812,7 @@ namespace WDS_Dispatches
                 subNode = null;
             }
 
-            for (int i = 1; i < formation.Count; i++) {
+            for (int i = 0; i < formation.Count; i++) {
                 Dictionary<string, object> unit = formation[i];
 
                 string subunitType = (string)unit["type"];
@@ -809,19 +831,58 @@ namespace WDS_Dispatches
                         friendly
                     );
                 } else if (subunitType == "Unit") {
-                    string unitId = subunitName + " " + newCode;
-                    Dictionary<string, object> newUnitDict = new Dictionary<string, object> {
-                        { "code",           newCode },
-                        { "node_name",      unitId },
-                        { "parent_node",    parentNodename },
-                        { "message_name",   subunitName },
-                        { "location",       new Location() },
-                        { "friendly",       friendly },
-                        { "type",           subunitType } 
-                    };
-                    _unitData.Add(unitId, newUnitDict);
+                    string unitId; 
+                    if(i == leaderIndex) {
+                        // Using it as HQ proxy for receiving dispatches
+                        unitId = nodeName;
+                    } else {
+                        unitId = subunitName + " " + newCode;
+                    }
+
+                    AddUnit(
+                        newCode,
+                        unitId,
+                        parentNodename,
+                        subunitName,
+                        new Location(),
+                        friendly,
+                        subunitType
+                    );
                 }
             }
+        }
+        
+        private string GetAvailableUnitName(string uname) {
+            int dupUnitNames = 0;
+            string nodeName = uname;
+            string origNodeName = uname;
+            while (_unitData.ContainsKey(nodeName)) {
+                dupUnitNames++;
+                nodeName = origNodeName + " (" + dupUnitNames + ")";
+            }
+
+            return nodeName;
+        }
+
+        private void AddUnit(
+            string code,
+            string nodeName,
+            string parentNode,
+            string messageName,
+            Location location,
+            bool isFriendly,
+            string uType
+        ) {
+            Dictionary<string, object> unitDict = new Dictionary<string, object> {
+                { "code",           code  },
+                { "node_name",      nodeName                            },
+                { "parent_node",    parentNode                                  },
+                { "message_name",   messageName        },
+                { "location",       location                      },
+                { "friendly",       isFriendly                            },
+                { "type",           uType                            }
+            };
+            _unitData.Add(nodeName, unitDict);
         }
 
         private void PopulateArmies(TreeView tvRecip, TreeView tvSender) {
@@ -841,12 +902,16 @@ namespace WDS_Dispatches
                     List<Dictionary<string, object>>
                 )army["units"];
 
+                if(units.Count() == 0) {
+                    continue;
+                }
+
                 // find the leader on the ground, if he's in the scenario
                 // otherwise use the default commander
                 bool leaderFound = false;
                 int leaderIndex = 0;
                 Dictionary<string, object> leaderUnit = null;
-                do {
+                while (!leaderFound && leaderIndex < units.Count()) {
                     Dictionary<string, object> test_unit = units[leaderIndex];
                     if ((string)test_unit["type"] == "Leader") {
                         string leaderCode = codePrefix + "." + (leaderIndex + 1);
@@ -860,39 +925,69 @@ namespace WDS_Dispatches
                         // have run out of leaders
                         break;
                     }
-
-                } while (!leaderFound && leaderIndex < units.Count());
-
-                if(!leaderFound) {
-                    leaderIndex = 0;
-                    leaderUnit = units[0];
                 }
 
-                string leaderName = (string)leaderUnit["name"];
-                string nodeName = armyName + " (" + leaderName + ")";
+                string nodeName, messageName;
+                // no leaders present? find A leader
+                if (!leaderFound) {
+                    for (int j = 0; j < units.Count(); j++) {
+                        Dictionary<string, object> test_unit = units[j];
+                        if ((string)test_unit["type"] == "Leader") {
+                            leaderIndex = j;
+                            leaderUnit = test_unit;
+                            leaderFound = true;
+                            break;
+                        }
+                    }
+                }
 
-                int dupUnitNames = 0;
-                string origNodeName = nodeName;
-                while (_unitData.ContainsKey(nodeName)) {
-                    dupUnitNames++;
-                    nodeName = origNodeName + " (" + dupUnitNames + ")";
+                if (!leaderFound) {
+                    // no leaders at all?? find a unit
+                    for (int j = 0; j < units.Count(); j++) {
+                        Dictionary<string, object> test_unit = units[j];
+                        if ((string)test_unit["type"] == "Unit") {
+                            leaderIndex = j;
+                            leaderFound = true;
+                            break;
+                        }
+                    }
+                    nodeName = GetAvailableUnitName(armyName);
+                    messageName = armyName;
+
+                    if (!leaderFound) {
+                        leaderIndex = -1;
+                        // Add a dummy unit
+                        AddUnit(
+                            codePrefix + ".0",
+                            nodeName,
+                            "",
+                            messageName,
+                            new Location(),
+                            friendly,
+                            "Leader"
+                        );
+                    }
+                } else {
+                    // Add the leader
+                    string leaderName = (string)leaderUnit["name"];
+                    nodeName = GetAvailableUnitName(armyName + " (" + leaderName + ")");
+                    messageName = leaderName + ", " + armyName;
+
+                    // Index node to unit data
+                    AddUnit(
+                        codePrefix + "." + (leaderIndex + 1),
+                        nodeName,
+                        "",
+                        messageName,
+                        new Location(),
+                        friendly,
+                        "Leader"
+                    );
                 }
                 
                 if (friendly) {
                     tvRecip.Nodes.Add(nodeName);
                 }
-
-                // Index node to unit data
-                Dictionary<string, object> unitDict = new Dictionary<string, object> {
-                    { "code",           codePrefix + "." + (leaderIndex+1)  },
-                    { "node_name",      nodeName                            },
-                    { "parent_node",    ""                                  },
-                    { "message_name",   leaderName + ", " + armyName        },
-                    { "location",       new Location()                      },
-                    { "friendly",       friendly                            },
-                    { "type",           "Leader"                            }
-                };
-                _unitData.Add(nodeName, unitDict);
 
                 TreeNode armyNode;
                 if (friendly) {
@@ -901,7 +996,7 @@ namespace WDS_Dispatches
                     armyNode = null;
                 }
 
-                for (int j = 1; j < units.Count; j++) {
+                for (int j = 0; j < units.Count; j++) {
                     Dictionary<string, object> unit = units[j];
                     string unitType = (string)unit["type"];
 
@@ -922,17 +1017,23 @@ namespace WDS_Dispatches
                             friendly
                         );
                     } else if(unitType == "Unit") {
-                        string unitId = unitName + " " + newCode;
-                        Dictionary<string, object> newUnitDict = new Dictionary<string, object> {
-                            { "code",           newCode },
-                            { "node_name",      unitId },
-                            { "parent_node",    nodeName },
-                            { "message_name",   unitName },
-                            { "location",       new Location() },
-                            { "friendly",       friendly },
-                            { "type",           unitType }
-                        };
-                        _unitData.Add(unitId, newUnitDict);
+                        string unitId;
+                        if (j == leaderIndex) {
+                            // if we're using a unit as an HQ to receive dispatches,
+                            // in the absence of an official leader...
+                            unitId = nodeName;
+                        } else {
+                            unitId = unitName + " " + newCode;
+                        }
+                        AddUnit(
+                            newCode,
+                            unitId,
+                            nodeName,
+                            unitName,
+                            new Location(),
+                            friendly,
+                            unitType
+                        );
                     }
                 }
             }
