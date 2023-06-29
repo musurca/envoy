@@ -28,7 +28,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
+            this.versionLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnOK
@@ -77,14 +77,14 @@
             this.label4.TabIndex = 4;
             this.label4.Text = "Envoy - a utility for WDS wargames";
             // 
-            // label5
+            // versionLabel
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(69, 31);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(34, 13);
-            this.label5.TabIndex = 5;
-            this.label5.Text = "v1.03";
+            this.versionLabel.AutoSize = true;
+            this.versionLabel.Location = new System.Drawing.Point(69, 31);
+            this.versionLabel.Name = "versionLabel";
+            this.versionLabel.Size = new System.Drawing.Size(34, 13);
+            this.versionLabel.TabIndex = 5;
+            this.versionLabel.Text = "v1.03";
             // 
             // About
             // 
@@ -92,9 +92,9 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnOK;
-            this.ClientSize = new System.Drawing.Size(181, 172);
+            this.ClientSize = new System.Drawing.Size(186, 168);
             this.ControlBox = false;
-            this.Controls.Add(this.label5);
+            this.Controls.Add(this.versionLabel);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
@@ -121,6 +121,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label versionLabel;
     }
 }

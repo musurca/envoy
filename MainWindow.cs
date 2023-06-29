@@ -57,12 +57,26 @@ namespace WDS_Dispatches
             }
         }
 
+        private void SetDispatchETA(string eta) {
+            if (labelDispatchETA.InvokeRequired) {
+                labelDispatchETA.Invoke(
+                    (MethodInvoker)(
+                        () => labelDispatchETA.Text = eta
+                    )
+                );
+            } else {
+                labelDispatchETA.Text = eta;
+            }
+        }
+
         private void UpdateSelection() {
             if (messageBody.InvokeRequired) {
                 messageBody.Invoke((MethodInvoker)(() => messageBody.Clear()));
             } else {
                 messageBody.Clear();
             }
+
+            SetDispatchETA("");
 
             if (_dispatchState != null && _curSender != null) {
                 // make sure sender can still send dispatches
@@ -226,15 +240,7 @@ namespace WDS_Dispatches
                         final_delivery_eta = time + interval;
                     }
 
-                    if (labelDispatchETA.InvokeRequired) {
-                        labelDispatchETA.Invoke(
-                            (MethodInvoker)(
-                                () => labelDispatchETA.Text = final_delivery_eta
-                            )
-                        );
-                    } else {
-                        labelDispatchETA.Text = final_delivery_eta;
-                    }
+                    SetDispatchETA(final_delivery_eta);
 
                     return;
                 }

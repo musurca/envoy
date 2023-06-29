@@ -12,6 +12,8 @@ namespace WDS_Dispatches {
     public partial class About : Form {
         public About() {
             InitializeComponent();
+
+            versionLabel.Text = "v" + ScenarioSettings.ENVOY_VERSION_NUMBER;
         }
     }
 }

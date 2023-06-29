@@ -47,9 +47,10 @@ namespace WDS_Dispatches
         private List<Dictionary<string, object>> _armies;
         private Dictionary<string, Dictionary<string, object>> _unitData;
         private List<string> _objectives;
+        private List<string> _nations;
         private Dictionary<string, bool> _unitPresent;
         private string  _scenarioName;
-        private int     _armyPlaying;
+        private int     _armyPlayingIndex;
         private int     _currentTurn;
         private string  _currentDay;
         private string  _currentTime;
@@ -103,6 +104,8 @@ namespace WDS_Dispatches
         public ScenarioData() {
             _armies = null;
             _unitData = null;
+            _objectives = new List<string>();
+            _nations = new List<string>();
 
             if (ScenarioData.Months == null) {
                 ScenarioData.Months = new List<string> {
@@ -130,8 +133,7 @@ namespace WDS_Dispatches
 
         public List<string> GetObjectives() { return _objectives; }
 
-        private static string GetMonthNameByIndex(int index)
-        {
+        private static string GetMonthNameByIndex(int index) {
             if (index > 0 && index < 13) {
                 return ScenarioData.Months[index-1];
             }
@@ -142,7 +144,9 @@ namespace WDS_Dispatches
         public static int ReadNum(ScenarioReader f) {
             string line = f.ReadLine();
             if (line != null) {
-                return int.Parse(line.Trim());
+                return int.Parse(
+                    line.Trim()
+                );
             }
             return -1;
         }
@@ -152,7 +156,7 @@ namespace WDS_Dispatches
             if (line != null) {
                 return line.Trim();
             }
-            return "";
+            return null;
         }
 
         public static Dictionary<string, object> ReadUnit(ScenarioReader f, string line) {
@@ -160,9 +164,9 @@ namespace WDS_Dispatches
             string unitType = items[0].ToLower();
 
             Dictionary<string, string> abbrevToType = new Dictionary<string, string> {
-                {"u", "Armed Unit" },
-                {"s", "Supply" },
-                {"g", "Ship" }
+                { "u", "Armed Unit" },
+                { "s", "Supply"     },
+                { "g", "Ship"       } 
             };
 
             string unitName = "";
@@ -172,9 +176,9 @@ namespace WDS_Dispatches
             unitName = unitName.Trim();
 
             return new Dictionary<string, object> {
-                { "name", unitName },
-                { "type", "Unit" },
-                { "subtype", abbrevToType[unitType] }
+                { "name",       unitName                    },
+                { "type",       "Unit"                      },
+                { "subtype",    abbrevToType[unitType]      }
             };
         }
 
@@ -222,40 +226,52 @@ namespace WDS_Dispatches
 
             readLine = ReadString(f);
             while (readLine.ToLower() != "end") {
+                Dictionary<string, object> oob_object;
+
                 char lineType = char.ToLower(readLine[0]);
                 if (lineType == 'l') {
-                    units.Add(
-                        ReadLeader(f, readLine)
-                    );
+                    oob_object = ReadLeader(f, readLine);
                 } else if (lineType == 'u' || lineType == 's' || lineType == 'g') {
-                    units.Add(
-                        ReadUnit(f, readLine)
-                    );
+                    oob_object = ReadUnit(f, readLine);
                 } else {
-                    units.Add(
-                        ReadFormation(f, readLine)
-                    );
+                    oob_object = ReadFormation(f, readLine);
                 }
+                units.Add(oob_object);
+
                 readLine = ReadString(f);
             }
 
             return new Dictionary<string, object> {
-                { "name", formName },
-                { "type", formKeys[formType] },
-                { "units", units }
+                { "name",   formName            },
+                { "type",   formKeys[formType]  },
+                { "units",  units               }
             };
         }
 
-        public static Dictionary<string, object> ReadArmy(ScenarioReader f, string line) {
+        public void ReadArmy(ScenarioReader f, string line) {
             string[] items = line.Split();
-            if(items[1] != "A") {
-                // TODO: might be a supply unit
-                return null;
+            while (items.Length < 2) {
+                line = ReadString(f);
+                if(line == null) {
+                    return;
+                }
+
+                items = line.Split();
             }
+            if (items[1] != "A") {
+                // TODO: might be a supply unit
+                return;
+            }
+
+            // Add nation to list of combatants
             string nation = items[0];
+            if(!_nations.Contains(nation)) {
+                _nations.Add(nation);
+            }
+
             string armyName = "";
-            for(int i = 2; i < items.Length; i++) {
-                armyName += items[i] + " "; 
+            for (int i = 2; i < items.Length; i++) {
+                armyName += items[i] + " ";
             }
             armyName = armyName.Trim();
 
@@ -273,8 +289,7 @@ namespace WDS_Dispatches
                     units.Add(
                         ReadLeader(f, readLine)
                     );
-                }
-                else if (lineType == 'u' || lineType == 's' || lineType == 'g') { // Unit or supply
+                } else if (lineType == 'u' || lineType == 's' || lineType == 'g') { // Unit or supply
                     units.Add(
                         ReadUnit(f, readLine)
                     );
@@ -286,12 +301,14 @@ namespace WDS_Dispatches
                 readLine = ReadString(f);
             }
 
-            return new Dictionary<string, object> {
-                { "name", armyName },
-                { "type", "Army" },
-                { "nation", nation },
-                { "units", units }
-            };
+            _armies.Add(
+                new Dictionary<string, object> {
+                    { "name", armyName },
+                    { "type", "Army" },
+                    { "nation", nation },
+                    { "units", units }
+                }
+            );
         }
 
         public void ReadOOB(string filename, TreeView tvRecip, TreeView tvSender) {
@@ -308,13 +325,12 @@ namespace WDS_Dispatches
             if (_scenarioEra == ERA_MODERN) {
                 int oobId = ReadNum(oob);
             }
-            
+
+            _nations.Clear();
+
             string line = ReadString(oob);
-            while (line != "") {
-                Dictionary<string, object> army = ReadArmy(oob, line);
-                if (army != null) {
-                    _armies.Add(army);
-                }
+            while (line != null) {
+                ReadArmy(oob, line);
                 line = ReadString(oob);
             }
 
@@ -323,7 +339,7 @@ namespace WDS_Dispatches
 
         public void ParseScenarioHeader(ScenarioReader scenario) {
             int fileVersion;
-            string first_line = ReadString(scenario).Trim();
+            string first_line = ReadString(scenario);
 
             if(first_line.Contains("PEM Header")) {
                 _isPBEM = true;
@@ -334,7 +350,7 @@ namespace WDS_Dispatches
                 fileVersion = int.Parse(first_line);
             }
 
-            _scenarioName = ReadString(scenario).Trim();
+            _scenarioName = ReadString(scenario);
 
             if (_scenarioName[_scenarioName.Length-1] == ',') {
                 // Trim extra commas
@@ -353,7 +369,7 @@ namespace WDS_Dispatches
                 day = int.Parse(items[2]);
                 hour = int.Parse(items[3]);
                 minute = int.Parse(items[4]);
-                _armyPlaying = int.Parse(items[5]);
+                _armyPlayingIndex = int.Parse(items[5]);
                 phase = int.Parse(items[6]);
                 _currentTurn = int.Parse(items[7]);
                 _maxTurns = int.Parse(items[8]);
@@ -364,7 +380,7 @@ namespace WDS_Dispatches
                 month = int.Parse(items[1]);
                 day = int.Parse(items[2]);
                 hour = int.Parse(items[3]);
-                _armyPlaying = int.Parse(items[4]);
+                _armyPlayingIndex = int.Parse(items[4]);
                 phase = int.Parse(items[5]);
                 _currentTurn = int.Parse(items[6]);
                 _maxTurns = int.Parse(items[7]);
@@ -403,10 +419,23 @@ namespace WDS_Dispatches
         }
 
         public void ReadMap(string basepath, string filename) {
-            string[] all_lines = File.ReadAllLines(
-                basepath + filename,
-                Encoding.GetEncoding("ISO-8859-1")
-            );
+            string map_path = basepath + filename;
+            string[] all_lines;
+
+            if (File.Exists(map_path)) {
+                all_lines = File.ReadAllLines(
+                    map_path,
+                    Encoding.GetEncoding("ISO-8859-1")
+                );
+            } else {
+                MessageBox.Show(
+                    "Can't find scenario map at " + map_path + " -- objective names will not be loaded.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                return;
+            }
 
             ScenarioReader mapfile = new ScenarioReader(all_lines);
 
@@ -426,15 +455,26 @@ namespace WDS_Dispatches
                 width = int.Parse(dims[2]);
                 height = int.Parse(dims[3]);
 
-                all_lines = File.ReadAllLines(
-                    basepath + new_mapfile,
-                    Encoding.GetEncoding("ISO-8859-1")
-                );
+                map_path = basepath + new_mapfile;
+
+                if (File.Exists(map_path)) {
+                    all_lines = File.ReadAllLines(
+                        basepath + new_mapfile,
+                        Encoding.GetEncoding("ISO-8859-1")
+                    );
+                } else {
+                    MessageBox.Show(
+                        "Can't find scenario map at " + map_path + " -- objective names will not be loaded.",
+                        "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                    return;
+                }
 
                 mapfile = new ScenarioReader(all_lines);
-            } else {
-                mapfile.Reset();
             }
+            mapfile.Reset();
 
             ReadScenarioMap(mapfile, x, y, width, height);
         }
@@ -462,9 +502,9 @@ namespace WDS_Dispatches
                 }
             }
 
-            _objectives = new List<string>();
+            _objectives.Clear();
             string objective_str = ReadString(map);
-            while(objective_str != "") {
+            while(objective_str != null) {
                 string[] items = objective_str.Split();
                 if (items.Count() > 5) {
                     string objective_name = items[5];
@@ -555,7 +595,7 @@ namespace WDS_Dispatches
                 scenarioEra = ERA_MODERN;
             }
 
-            if (armyPlaying != _armyPlaying) {
+            if (armyPlaying != _armyPlayingIndex) {
                 // not our turn
                 return false;
             }
@@ -586,7 +626,7 @@ namespace WDS_Dispatches
                 throw new Exception("Battle file corrupted!");
             }
 
-            if(currentTurn > _currentTurn && armyPlaying == _armyPlaying && phase == 0) {
+            if(currentTurn > _currentTurn && armyPlaying == _armyPlayingIndex && phase == 0) {
                 return true;
             }
 
@@ -603,12 +643,18 @@ namespace WDS_Dispatches
             // Store current position of all leader units
             string line = ReadString(scenario);
             string[] items;
-            while (line != "" && !line.Contains("PEM Middle")) {
+            while (line != null) {
+                if(line.Contains("PEM Middle")) {
+                    break;
+                }
+
                 items = line.Split();
-                if (items[0] == "1") { // unit placement
-                    string code = items[1];
-                    if (!_unitPresent.ContainsKey(code)) {
-                        _unitPresent.Add(code, true);
+                if (items.Length >= 2) {
+                    if (items[0] == "1") { // unit placement
+                        string code = items[1];
+                        if (!_unitPresent.ContainsKey(code)) {
+                            _unitPresent.Add(code, true);
+                        }
                     }
                 }
 
@@ -627,26 +673,32 @@ namespace WDS_Dispatches
             List<Dictionary<string, object>> units = _unitData.Values.ToList();
             string line = ReadString(scenario);
             string[] items;
-            while (line != "" && !line.Contains("PEM Middle")) {
+            while (line != null) {
+                if(line.Contains("PEM Middle")) {
+                    break;
+                }
+
                 items = line.Split();
-                if (items[0] == "1") { // unit placement
-                    string code = items[1];
-                    for (int i = 0; i < units.Count; i++) {
-                        Dictionary<string, object> unit = units[i];
-                        if (code == (string)unit["code"]) {
-                            string node_name = (string)unit["node_name"];
-                            unit = _unitData[node_name];
+                if (items.Length >= 2) {
+                    if (items[0] == "1") { // unit placement
+                        string code = items[1];
+                        for (int i = 0; i < units.Count; i++) {
+                            Dictionary<string, object> unit = units[i];
+                            if (code == (string)unit["code"]) {
+                                string node_name = (string)unit["node_name"];
+                                unit = _unitData[node_name];
 
-                            int location_x = int.Parse(items[items.Length - 2]);
-                            int location_y = int.Parse(items[items.Length - 1]);
+                                int location_x = int.Parse(items[items.Length - 2]);
+                                int location_y = int.Parse(items[items.Length - 1]);
 
-                            unit["location"] = new Location(location_x, location_y);
+                                unit["location"] = new Location(location_x, location_y);
 
-                            if (_unitPresent.ContainsKey(code)) {
-                                _unitPresent[code] = true;
-                                unitsInScenario.Remove(code);
-                            } else {
-                                _unitPresent.Add(code, true);
+                                if (_unitPresent.ContainsKey(code)) {
+                                    _unitPresent[code] = true;
+                                    unitsInScenario.Remove(code);
+                                } else {
+                                    _unitPresent.Add(code, true);
+                                }
                             }
                         }
                     }
@@ -886,17 +938,29 @@ namespace WDS_Dispatches
         }
 
         private void PopulateArmies(TreeView tvRecip, TreeView tvSender) {
+            string friendlyNation;
+            if (_armyPlayingIndex < _nations.Count) {
+                friendlyNation = _nations[_armyPlayingIndex];
+            } else if(_armyPlayingIndex < _armies.Count) {
+                Dictionary<string, object> friendlyArmy = _armies[_armyPlayingIndex];
+                friendlyNation = (string)friendlyArmy["nation"];
+            } else {
+                // TODO show error message
+                return;
+            }
+
             // Populate the OOBs for recipient and sender
             tvRecip.BeginUpdate();
             tvRecip.Nodes.Clear();
             for (int i = 0; i < _armies.Count; i++)
             {
-                bool friendly = (_armyPlaying == i);
+                Dictionary<string, object> army = _armies[i];
+                string armyNation = (string)army["nation"];
+                string armyName = (string)army["name"];
+
+                bool friendly = (armyNation == friendlyNation);
 
                 string codePrefix = (i + 1).ToString();
-
-                Dictionary<string, object> army = _armies[i];
-                string armyName = (string)army["name"];
 
                 List<Dictionary<string, object>> units = (
                     List<Dictionary<string, object>>
@@ -1060,7 +1124,11 @@ namespace WDS_Dispatches
             string wdsPath = "";
 
             string savesPath = Path.GetDirectoryName(battlePath);
-            wdsPath = Path.Combine(savesPath, "..");
+            
+            // Move one directory up to get home game folder
+            wdsPath = Path.GetFullPath(
+                Path.Combine(savesPath, "..")
+            );
 
             // Initialize unit data from scratch
             _unitData = new Dictionary<string, Dictionary<string, object>>();
