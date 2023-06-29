@@ -1,5 +1,5 @@
 # Envoy
-
+![screenshot](https://i.imgur.com/8Pmolh3.jpg)
 **[DOWNLOAD LATEST RELEASE (v1.03)](https://github.com/musurca/envoy/releases/download/1.03/Envoy.v1.03.zip)**
 
 **Envoy** is a utility for [Wargame Design Studio](http://www.wargameds.com)’s series of historical wargames that
