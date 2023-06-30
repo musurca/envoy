@@ -523,51 +523,53 @@ namespace WDS_Dispatches
 
             if(battlePath != "") {
                 _dispatchState = DispatchState.Deserialize(battlePath, treeRecipient, treeSender);
-                _scenarioData = _dispatchState.Scenario;
-                if (_dispatchState.CurrentTurn < _scenarioData.GetCurrentTurn()) {
-                    UpdateDispatchState();
-                } else {
-                    UpdateScenarioLabels();
+                if (_dispatchState.Scenario.LoadedCorrectly()) {
+                    _scenarioData = _dispatchState.Scenario;
+                    if (_dispatchState.CurrentTurn < _scenarioData.GetCurrentTurn()) {
+                        UpdateDispatchState();
+                    } else {
+                        UpdateScenarioLabels();
+                    }
+
+                    if (_dispatchState.Settings == null) {
+                        ShowSettingsWindow(true);
+                    } else if (!_dispatchState.Settings.Validate()) {
+                        // old settings, need update
+                        ShowSettingsWindow(true);
+                    }
+
+                    PopulateContextMenu();
+
+                    // Set default sender to overall commander
+                    treeSender.SelectedNode = treeSender.Nodes[0];
+                    treeRecipient.SelectedNode = null;
+                    SelectRecipient();
+                    SelectSender();
+
+                    editToolStripMenuItem.Enabled = true;
+                    settingsToolStripMenuItem1.Enabled = true;
+
+                    if (_fileTimer != null) {
+                        _fileTimer.Stop();
+                        _fileTimer.Dispose();
+                    }
+                    if (_watcher != null) {
+                        _watcher.Dispose();
+                    }
+
+                    _watcher = new FileSystemWatcher(
+                        Path.GetDirectoryName(battlePath),
+                        Path.GetFileName(battlePath)
+                    );
+                    _watcher.NotifyFilter = NotifyFilters.LastWrite;
+                    _watcher.Changed += FileChanged;
+                    _watcher.EnableRaisingEvents = true;
+
+                    _fileTimer = new System.Timers.Timer(250);
+                    _fileTimer.AutoReset = true;
+                    _fileTimer.Elapsed += TimerElapsed;
+                    _fileTimer.Start();
                 }
-
-                if (_dispatchState.Settings == null) {
-                    ShowSettingsWindow(true);
-                } else if(!_dispatchState.Settings.Validate()) {
-                    // old settings, need update
-                    ShowSettingsWindow(true);
-                }
-
-                PopulateContextMenu();
-
-                // Set default sender to overall commander
-                treeSender.SelectedNode = treeSender.Nodes[0];
-                treeRecipient.SelectedNode = null;
-                SelectRecipient();
-                SelectSender();
-
-                editToolStripMenuItem.Enabled = true;
-                settingsToolStripMenuItem1.Enabled = true;
-
-                if (_fileTimer != null) {
-                    _fileTimer.Stop();
-                    _fileTimer.Dispose();
-                }
-                if (_watcher != null) {
-                    _watcher.Dispose();
-                }
-
-                _watcher = new FileSystemWatcher(
-                    Path.GetDirectoryName(battlePath), 
-                    Path.GetFileName(battlePath)
-                );
-                _watcher.NotifyFilter = NotifyFilters.LastWrite;
-                _watcher.Changed += FileChanged;
-                _watcher.EnableRaisingEvents = true;
-
-                _fileTimer = new System.Timers.Timer(250);
-                _fileTimer.AutoReset = true;
-                _fileTimer.Elapsed += TimerElapsed;
-                _fileTimer.Start();
             }
         }
 

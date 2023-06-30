@@ -110,8 +110,8 @@ namespace WDS_Dispatches
         public string GetMapFilename() { return _mapFilename; }
 
         public ScenarioData() {
-            _armies = null;
-            _unitData = null;
+            _armies = new List<Dictionary<string, object>>();
+            _unitData = new Dictionary<string, Dictionary<string, object>>();
             _objectives = new List<string>();
             _nations = new List<string>();
             _loadedCorrectly = false;
@@ -326,7 +326,7 @@ namespace WDS_Dispatches
         }
 
         public bool ReadOOB(string filename) {
-            _armies = new List<Dictionary<string, object>>();
+            _armies.Clear();
 
             string[] all_lines;
             if (File.Exists(filename)) {
@@ -466,7 +466,7 @@ namespace WDS_Dispatches
                 );
             } else {
                 MessageBox.Show(
-                    "Can't find scenario map at " + map_path + " -- objective names will not be loaded.",
+                    "Can't find scenario map at " + map_path + "!",
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
@@ -521,7 +521,7 @@ namespace WDS_Dispatches
                     );
                 } else {
                     MessageBox.Show(
-                        "Can't find scenario map at " + map_path + " -- objective names will not be loaded.",
+                        "Can't find scenario submap at " + map_path + "!",
                         "Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
@@ -828,20 +828,23 @@ namespace WDS_Dispatches
                 }
             }
 
-            foreach(Dictionary<string, object> unit in units) {
-                if ((bool)unit["friendly"]) {
-                    string node_name = (string)unit["node_name"];
-                    Location loc = (Location)unit["location"];
+            // Color-code present/absent units in the treeview
+            if (_tvRecip.Nodes.Count > 0) {
+                foreach (Dictionary<string, object> unit in units) {
+                    if ((bool)unit["friendly"]) {
+                        string node_name = (string)unit["node_name"];
+                        Location loc = (Location)unit["location"];
 
-                    TreeNode recipResult = FindTreeNodeByText(_tvRecip.Nodes[0], node_name);
-                    TreeNode senderResult = FindTreeNodeByText(_tvSender.Nodes[0], node_name);
-                    if (recipResult != null && senderResult != null) {
-                        if (loc.IsPresent()) {
-                            recipResult.ForeColor = System.Drawing.Color.Black;
-                            senderResult.ForeColor = System.Drawing.Color.Black;
-                        } else {
-                            recipResult.ForeColor = System.Drawing.Color.Gray;
-                            senderResult.ForeColor = System.Drawing.Color.Gray;
+                        TreeNode recipResult = FindTreeNodeByText(_tvRecip.Nodes[0], node_name);
+                        TreeNode senderResult = FindTreeNodeByText(_tvSender.Nodes[0], node_name);
+                        if (recipResult != null && senderResult != null) {
+                            if (loc.IsPresent()) {
+                                recipResult.ForeColor = System.Drawing.Color.Black;
+                                senderResult.ForeColor = System.Drawing.Color.Black;
+                            } else {
+                                recipResult.ForeColor = System.Drawing.Color.Gray;
+                                senderResult.ForeColor = System.Drawing.Color.Gray;
+                            }
                         }
                     }
                 }
@@ -1274,7 +1277,7 @@ namespace WDS_Dispatches
             );
 
             // Initialize unit data from scratch
-            _unitData = new Dictionary<string, Dictionary<string, object>>();
+            _unitData.Clear();
             ReadScenario(battlePath, wdsPath);
 
             _filename = battlePath;

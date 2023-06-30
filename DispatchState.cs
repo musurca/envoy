@@ -270,19 +270,21 @@ namespace WDS_Dispatches
         }
 
         public List<Dispatch> Update() {
-            int turnInterval = Scenario.GetCurrentTurn() - CurrentTurn;
+            if (Scenario.LoadedCorrectly()) {
+                int turnInterval = Scenario.GetCurrentTurn() - CurrentTurn;
 
-            if (turnInterval > 0) {
-                List<Dispatch> newDispatches = new List<Dispatch>();
+                if (turnInterval > 0) {
+                    List<Dispatch> newDispatches = new List<Dispatch>();
 
-                for (int i = 0; i < turnInterval; i++) {
-                    AdvanceTurn();
+                    for (int i = 0; i < turnInterval; i++) {
+                        AdvanceTurn();
 
-                    newDispatches.AddRange(DispatchesReceived[CurrentTurn]);
+                        newDispatches.AddRange(DispatchesReceived[CurrentTurn]);
+                    }
+
+                    Serialize();
+                    return newDispatches;
                 }
-
-                Serialize();
-                return newDispatches;
             }
 
             return null;
