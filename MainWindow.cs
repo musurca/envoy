@@ -69,6 +69,34 @@ namespace WDS_Dispatches
             }
         }
 
+        private void SetDispatchesRemaining(int cur_dispatches, int max_dispatches) {
+            if (barDispatchesLeft.InvokeRequired) {
+                barDispatchesLeft.Invoke(
+                    (MethodInvoker)(
+                        () => barDispatchesLeft.Maximum = max_dispatches
+                    )
+                );
+                barDispatchesLeft.Invoke(
+                    (MethodInvoker)(
+                        () => barDispatchesLeft.Value = cur_dispatches
+                    )
+                );
+            } else {
+                barDispatchesLeft.Maximum = max_dispatches;
+                barDispatchesLeft.Value = cur_dispatches;
+            }
+        }
+
+        private void SetMessageBodyText(string text) {
+            if (messageBody.InvokeRequired) {
+                messageBody.Invoke((MethodInvoker)(
+                    () => messageBody.Text = text
+                ));
+            } else {
+                messageBody.Text = text;
+            }
+        }
+
         private void UpdateSelection() {
             if (messageBody.InvokeRequired) {
                 messageBody.Invoke((MethodInvoker)(() => messageBody.Clear()));
@@ -85,21 +113,10 @@ namespace WDS_Dispatches
                 if (!canSendDispatches) { // TODO max dispatches per leader
                     DisableSending();
                 }
-                if (barDispatchesLeft.InvokeRequired) {
-                    barDispatchesLeft.Invoke(
-                        (MethodInvoker)(
-                            () => barDispatchesLeft.Maximum = _dispatchState.Settings.DispatchesPerLeader
-                        )
-                    );
-                    barDispatchesLeft.Invoke(
-                        (MethodInvoker)(
-                            () => barDispatchesLeft.Value = barDispatchesLeft.Maximum - dispatchesSent
-                        )
-                    );
-                } else {
-                    barDispatchesLeft.Maximum = _dispatchState.Settings.DispatchesPerLeader;
-                    barDispatchesLeft.Value = barDispatchesLeft.Maximum - dispatchesSent;
-                }
+                SetDispatchesRemaining(
+                    _dispatchState.Settings.DispatchesPerLeader - dispatchesSent,
+                    _dispatchState.Settings.DispatchesPerLeader
+                );
 
                 if (_curRecipient != null) {
                     Location recipLoc = (Location)_curRecipient["location"];
@@ -119,13 +136,7 @@ namespace WDS_Dispatches
                     );
                     if (curDispatch != null) {
                         DisableSending();
-                        if (messageBody.InvokeRequired) {
-                            messageBody.Invoke((MethodInvoker)(
-                                () => messageBody.Text = curDispatch.Message
-                            ));
-                        } else {
-                            messageBody.Text = curDispatch.Message;
-                        }
+                        SetMessageBodyText(curDispatch.Message);
                     }
 
                     if (canSendDispatches && curDispatch == null) {
@@ -248,13 +259,7 @@ namespace WDS_Dispatches
 
             // Otherwise we can't send
             DisableSending();
-            if (messageBody.InvokeRequired) {
-                messageBody.Invoke((MethodInvoker)(
-                    () => messageBody.Text = string.Empty
-                ));
-            } else {
-                messageBody.Text = string.Empty;
-            }
+            SetMessageBodyText("");
         }
 
         private string GetRecipient() {
@@ -298,16 +303,20 @@ namespace WDS_Dispatches
                 if (senderSelected != null) {
                     // if we've selected same sender, clear sender
                     if (senderSelected.Text == selected.Text) {
-                        _curSender = null;
-                        treeSender.SelectedNode = null;
-                        labelMessageSender.Text = "(no one)";
+                        _curRecipient = null;
+                        labelMessageRecipient.Text = "(no one)";
+                        UpdateSelection();
+                        return;
                     }
                 }
 
                 _curRecipient = _scenarioData.GetUnitDataByNodeName(selected.Text);
-                Location loc = (Location)_curRecipient["location"];
-
-                labelMessageRecipient.Text = (string)_curRecipient["message_name"] + " " + loc.ToString();
+                if (_curRecipient != null) {
+                    Location loc = (Location)_curRecipient["location"];
+                    labelMessageRecipient.Text = (string)_curRecipient["message_name"] + " " + loc.ToString();
+                } else {
+                    labelMessageRecipient.Text = selected.Text;
+                }
 
                 UpdateSelection();
             } else {
@@ -323,16 +332,21 @@ namespace WDS_Dispatches
                 if (recipSelected != null) {
                     // if we've selected same recipient, clear recipient
                     if (recipSelected.Text == selected.Text) {
-                        _curRecipient = null;
-                        treeRecipient.SelectedNode = null;
-                        labelMessageRecipient.Text = "(no one)";
+                        _curSender = null;
+                        labelMessageSender.Text = "(no one)";
+                        UpdateSelection();
+                        return;
                     }
                 }
 
                 _curSender = _scenarioData.GetUnitDataByNodeName(selected.Text);
-                Location loc = (Location)_curSender["location"];
+                if (_curSender != null) {
+                    Location loc = (Location)_curSender["location"];
 
-                labelMessageSender.Text = (string)_curSender["message_name"] + " " + loc.ToString();
+                    labelMessageSender.Text = (string)_curSender["message_name"] + " " + loc.ToString();
+                } else {
+                    labelMessageSender.Text = selected.Text;
+                }
 
                 UpdateSelection();
             } else {
@@ -669,7 +683,7 @@ namespace WDS_Dispatches
         private void howToUseToolStripMenuItem_Click(object sender, EventArgs e) {
             try {
                 System.Diagnostics.Process.Start("Envoy_Manual_v10.pdf");
-            } catch(Exception ex) {
+            } catch(Exception) {
                 // do nothing
             }
         }

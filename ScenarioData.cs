@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WDS_Dispatches
 {
@@ -49,6 +50,9 @@ namespace WDS_Dispatches
         private List<string> _objectives;
         private List<string> _nations;
         private Dictionary<string, bool> _unitPresent;
+        private System.Windows.Forms.TreeView _tvRecip;
+        private System.Windows.Forms.TreeView _tvSender;
+        private bool    _loadedCorrectly;
         private string  _scenarioName;
         private int     _armyPlayingIndex;
         private int     _currentTurn;
@@ -63,6 +67,10 @@ namespace WDS_Dispatches
         private bool    _hasUpdated;
         private int     _scenarioEra;
         private bool    _isPBEM;
+
+        public bool LoadedCorrectly() {
+            return _loadedCorrectly;
+        }
 
         public bool HasUpdated() {
             if(_hasUpdated) {
@@ -106,6 +114,7 @@ namespace WDS_Dispatches
             _unitData = null;
             _objectives = new List<string>();
             _nations = new List<string>();
+            _loadedCorrectly = false;
 
             if (ScenarioData.Months == null) {
                 ScenarioData.Months = new List<string> {
@@ -128,7 +137,11 @@ namespace WDS_Dispatches
         }
 
         public Dictionary<string, object> GetUnitDataByNodeName(string node_name) {
-            return _unitData[node_name];
+            if (_unitData.ContainsKey(node_name)) {
+                return _unitData[node_name];
+            }
+
+            return null;
         }
 
         public List<string> GetObjectives() { return _objectives; }
@@ -190,11 +203,10 @@ namespace WDS_Dispatches
             for(int i = 1; i < items.Length; i++) {
                 try {
                     int test = int.Parse(items[i]);
-                } catch(Exception e) {
+                } catch(Exception) {
                     nameIndex = i;
                     break;
                 }
-                
             }
             for (int i = nameIndex; i < items.Length; i++) {
                 leaderName += items[i] + " ";
@@ -248,19 +260,19 @@ namespace WDS_Dispatches
             };
         }
 
-        public void ReadArmy(ScenarioReader f, string line) {
+        public bool ReadArmy(ScenarioReader f, string line) {
             string[] items = line.Split();
             while (items.Length < 2) {
                 line = ReadString(f);
                 if(line == null) {
-                    return;
+                    return true;
                 }
 
                 items = line.Split();
             }
             if (items[1] != "A") {
                 // TODO: might be a supply unit
-                return;
+                return true;
             }
 
             // Add nation to list of combatants
@@ -279,7 +291,7 @@ namespace WDS_Dispatches
 
             string readLine = ReadString(f);
             if (readLine.ToLower() != "begin") {
-                throw new Exception("Expected 'begin'");
+                return false;
             }
 
             readLine = ReadString(f);
@@ -309,15 +321,28 @@ namespace WDS_Dispatches
                     { "units", units }
                 }
             );
+
+            return true;
         }
 
-        public void ReadOOB(string filename, TreeView tvRecip, TreeView tvSender) {
+        public bool ReadOOB(string filename) {
             _armies = new List<Dictionary<string, object>>();
 
-            string[] all_lines = File.ReadAllLines(
-                filename,
-                Encoding.GetEncoding("ISO-8859-1")
-            );
+            string[] all_lines;
+            if (File.Exists(filename)) {
+                all_lines = File.ReadAllLines(
+                    filename,
+                    Encoding.GetEncoding("ISO-8859-1")
+                );
+            } else {
+                MessageBox.Show(
+                    "Can't find scenario order-of-battle at " + filename + "!",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                return false;
+            }
             
             ScenarioReader oob = new ScenarioReader(all_lines);
 
@@ -330,11 +355,23 @@ namespace WDS_Dispatches
 
             string line = ReadString(oob);
             while (line != null) {
-                ReadArmy(oob, line);
+                if(!ReadArmy(oob, line)) {
+                    return false;
+                }
                 line = ReadString(oob);
             }
 
-            PopulateArmies(tvRecip, tvSender);
+            if(!PopulateArmies()) {
+                MessageBox.Show(
+                    "Can't find a valid army!",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                return false;
+            }
+
+            return true;
         }
 
         public void ParseScenarioHeader(ScenarioReader scenario) {
@@ -418,7 +455,7 @@ namespace WDS_Dispatches
             }
         }
 
-        public void ReadMap(string basepath, string filename) {
+        public bool ReadMap(string basepath, string filename) {
             string map_path = basepath + filename;
             string[] all_lines;
 
@@ -434,7 +471,7 @@ namespace WDS_Dispatches
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
                 );
-                return;
+                return false;
             }
 
             ScenarioReader mapfile = new ScenarioReader(all_lines);
@@ -448,14 +485,34 @@ namespace WDS_Dispatches
             
             if(map_version == 0) {
                 // Submap
+                bool parsed_correctly = true;
+
                 string new_mapfile = ReadString(mapfile);
                 string[] dims = ReadString(mapfile).Split();
-                x = int.Parse(dims[0]);
-                y = int.Parse(dims[1]);
-                width = int.Parse(dims[2]);
-                height = int.Parse(dims[3]);
+                if (dims.Length < 4) {
+                    parsed_correctly = false;
+                } else {
+                    try {
+                        x = int.Parse(dims[0]);
+                        y = int.Parse(dims[1]);
+                        width = int.Parse(dims[2]);
+                        height = int.Parse(dims[3]);
+                    } catch(Exception) {
+                        parsed_correctly = false;
+                    }
+                }
 
                 map_path = basepath + new_mapfile;
+
+                if (!parsed_correctly) {
+                    MessageBox.Show(
+                        "Can't read scenario submap dimensions at " + map_path + "!",
+                        "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                    return false;
+                }
 
                 if (File.Exists(map_path)) {
                     all_lines = File.ReadAllLines(
@@ -469,21 +526,49 @@ namespace WDS_Dispatches
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
                     );
-                    return;
+                    return false;
                 }
 
                 mapfile = new ScenarioReader(all_lines);
             }
             mapfile.Reset();
 
-            ReadScenarioMap(mapfile, x, y, width, height);
+            if(!ReadScenarioMap(mapfile, x, y, width, height)) {
+                MessageBox.Show(
+                    "Can't read scenario map at " + map_path + "!",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                return false;
+            }
+
+            return true;
         }
 
-        public void ReadScenarioMap(ScenarioReader map, int x, int y, int w, int h) {
+        public bool ReadScenarioMap(ScenarioReader map, int x, int y, int w, int h) {
             int fileVersion = ReadNum(map);
             string[] dimensions = ReadString(map).Split();
-            int width = int.Parse(dimensions[0]);
-            int height = int.Parse(dimensions[1]);
+
+            int width = -1;
+            int height = -1;
+            bool parsed_correctly = true;
+
+            if (dimensions.Length < 2) {
+                parsed_correctly = false;
+            } else {
+                try {
+                    width = int.Parse(dimensions[0]);
+                    height = int.Parse(dimensions[1]);
+                } catch (Exception) {
+                    parsed_correctly = false;
+                }
+            }
+
+            if(!parsed_correctly) {
+                return false;
+            }
+
             string map_metadata = ReadString(map);
 
             // Now read terrain and height data, then ignore it
@@ -512,8 +597,20 @@ namespace WDS_Dispatches
                         objective_name = objective_name + " " + items[i];
                     }
 
-                    float obj_x = float.Parse(items[0]);
-                    float obj_y = float.Parse(items[1]);
+                    float obj_x = -1.0f;
+                    float obj_y = -1.0f;
+                    try {
+                        obj_x = float.Parse(items[0]);
+                        obj_y = float.Parse(items[1]);
+                    } catch(Exception) {
+                        MessageBox.Show(
+                            "Error reading location of objective " + objective_name + "!",
+                            "Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error
+                        );
+                        return false;
+                    }
 
                     if (x != -1) {
                         if (obj_x < x || obj_x > (x + w) || obj_y < y || obj_y > (y + h)) {
@@ -530,6 +627,8 @@ namespace WDS_Dispatches
 
                 objective_str = ReadString(map);
             }
+
+            return true;
         }
 
         public bool CheckScenarioHeader(ScenarioReader scenario) {
@@ -558,7 +657,7 @@ namespace WDS_Dispatches
                 scenarioName = scenarioName.Substring(0, scenarioName.Length - 1);
             }
             if (_scenarioName != scenarioName) {
-                throw new Exception("Battle file corrupted!");
+                return false;
             }
             
             string scenarioData = ReadString(scenario);
@@ -601,7 +700,7 @@ namespace WDS_Dispatches
             }
 
             if(scenarioEra != _scenarioEra) {
-                throw new Exception("Battle file corrupted!");
+                return false;
             }
 
             string line;
@@ -623,7 +722,7 @@ namespace WDS_Dispatches
                 map_filename    != _mapFilename ||
                 pdt_filename    != _pdtFilename
             ) {
-                throw new Exception("Battle file corrupted!");
+                return false;
             }
 
             if(currentTurn > _currentTurn && armyPlaying == _armyPlayingIndex && phase == 0) {
@@ -662,6 +761,17 @@ namespace WDS_Dispatches
             }
         }
 
+        private TreeNode FindTreeNodeByText(TreeNode root, string text) {
+            if (root.Text.Equals(text)) return root;
+
+            foreach (TreeNode node in root.Nodes) {
+                if (node.Text.Equals(text)) return node;
+                TreeNode next = FindTreeNodeByText(node, text);
+                if (next != null) return next;
+            }
+            return null;
+        }
+
         public void UpdateUnitLocations(ScenarioReader scenario) {
             // Store current position of all leader units
             Dictionary<string, bool> unitsInScenario = new Dictionary<string, bool>();
@@ -690,7 +800,6 @@ namespace WDS_Dispatches
 
                                 int location_x = int.Parse(items[items.Length - 2]);
                                 int location_y = int.Parse(items[items.Length - 1]);
-
                                 unit["location"] = new Location(location_x, location_y);
 
                                 if (_unitPresent.ContainsKey(code)) {
@@ -718,6 +827,25 @@ namespace WDS_Dispatches
                     }
                 }
             }
+
+            foreach(Dictionary<string, object> unit in units) {
+                if ((bool)unit["friendly"]) {
+                    string node_name = (string)unit["node_name"];
+                    Location loc = (Location)unit["location"];
+
+                    TreeNode recipResult = FindTreeNodeByText(_tvRecip.Nodes[0], node_name);
+                    TreeNode senderResult = FindTreeNodeByText(_tvSender.Nodes[0], node_name);
+                    if (recipResult != null && senderResult != null) {
+                        if (loc.IsPresent()) {
+                            recipResult.ForeColor = System.Drawing.Color.Black;
+                            senderResult.ForeColor = System.Drawing.Color.Black;
+                        } else {
+                            recipResult.ForeColor = System.Drawing.Color.Gray;
+                            senderResult.ForeColor = System.Drawing.Color.Gray;
+                        }
+                    }
+                }
+            }
         }
 
         public bool InEnemyZOC(Location loc) {
@@ -734,7 +862,7 @@ namespace WDS_Dispatches
             return false;
         }
 
-        public void ReadScenario(string filename, string wdsPath, TreeView tvRecip, TreeView tvSender) {
+        public void ReadScenario(string filename, string wdsPath) {
             string[] all_lines = File.ReadAllLines(
                 filename,
                 Encoding.GetEncoding("ISO-8859-1")
@@ -754,12 +882,20 @@ namespace WDS_Dispatches
             DetermineUnitPresence(scenario);
             scenario.SetPosition(filePosition);
 
-            ReadOOB(oobPath + @"\" + _oobFilename, tvRecip, tvSender);
+            if (!ReadOOB(oobPath + @"\" + _oobFilename)) {
+                _loadedCorrectly = false;
+                return;
+            }
 
             string mapPath = wdsPath + @"\Maps\";
-            ReadMap(mapPath, _mapFilename);
+            if(!ReadMap(mapPath, _mapFilename)) {
+                _loadedCorrectly = false;
+                return;
+            }
 
             UpdateUnitLocations(scenario);
+
+            _loadedCorrectly = true;
         }
 
         public void PopulateFormations(
@@ -887,6 +1023,7 @@ namespace WDS_Dispatches
                     if(i == leaderIndex) {
                         // Using it as HQ proxy for receiving dispatches
                         unitId = nodeName;
+                        subunitName = unitName;
                     } else {
                         unitId = subunitName + " " + newCode;
                     }
@@ -937,7 +1074,7 @@ namespace WDS_Dispatches
             _unitData.Add(nodeName, unitDict);
         }
 
-        private void PopulateArmies(TreeView tvRecip, TreeView tvSender) {
+        private bool PopulateArmies() {
             string friendlyNation;
             if (_armyPlayingIndex < _nations.Count) {
                 friendlyNation = _nations[_armyPlayingIndex];
@@ -946,12 +1083,12 @@ namespace WDS_Dispatches
                 friendlyNation = (string)friendlyArmy["nation"];
             } else {
                 // TODO show error message
-                return;
+                return false;
             }
 
             // Populate the OOBs for recipient and sender
-            tvRecip.BeginUpdate();
-            tvRecip.Nodes.Clear();
+            _tvRecip.BeginUpdate();
+            _tvRecip.Nodes.Clear();
             for (int i = 0; i < _armies.Count; i++)
             {
                 Dictionary<string, object> army = _armies[i];
@@ -1050,12 +1187,12 @@ namespace WDS_Dispatches
                 }
                 
                 if (friendly) {
-                    tvRecip.Nodes.Add(nodeName);
+                    _tvRecip.Nodes.Add(nodeName);
                 }
 
                 TreeNode armyNode;
                 if (friendly) {
-                    armyNode = tvRecip.Nodes[tvRecip.Nodes.Count - 1];
+                    armyNode = _tvRecip.Nodes[_tvRecip.Nodes.Count - 1];
                 } else {
                     armyNode = null;
                 }
@@ -1086,6 +1223,7 @@ namespace WDS_Dispatches
                             // if we're using a unit as an HQ to receive dispatches,
                             // in the absence of an official leader...
                             unitId = nodeName;
+                            unitName = armyName;
                         } else {
                             unitId = unitName + " " + newCode;
                         }
@@ -1101,15 +1239,17 @@ namespace WDS_Dispatches
                     }
                 }
             }
-            tvRecip.EndUpdate();
-            tvRecip.ExpandAll();
+            _tvRecip.EndUpdate();
+            _tvRecip.ExpandAll();
 
             // Copy same nodes to sender list
-            tvSender.BeginUpdate();
-            tvSender.Nodes.Clear();
-            CopyNodes(tvSender.Nodes, tvRecip.Nodes);
-            tvSender.EndUpdate();
-            tvSender.ExpandAll();
+            _tvSender.BeginUpdate();
+            _tvSender.Nodes.Clear();
+            CopyNodes(_tvSender.Nodes, _tvRecip.Nodes);
+            _tvSender.EndUpdate();
+            _tvSender.ExpandAll();
+
+            return true;
         }
 
         private void CopyNodes(TreeNodeCollection nodes_to, TreeNodeCollection nodes_from) {
@@ -1120,7 +1260,10 @@ namespace WDS_Dispatches
             }
         }
 
-        public void LoadScenario(string battlePath, TreeView tvRecip, TreeView tvSender) {
+        public void LoadScenario(string battlePath, System.Windows.Forms.TreeView tvRecip, System.Windows.Forms.TreeView tvSender) {
+            _tvRecip = tvRecip;
+            _tvSender = tvSender;
+
             string wdsPath = "";
 
             string savesPath = Path.GetDirectoryName(battlePath);
@@ -1132,7 +1275,7 @@ namespace WDS_Dispatches
 
             // Initialize unit data from scratch
             _unitData = new Dictionary<string, Dictionary<string, object>>();
-            ReadScenario(battlePath, wdsPath, tvRecip, tvSender);
+            ReadScenario(battlePath, wdsPath);
 
             _filename = battlePath;
             _shortFilename = Path.GetFileName(battlePath);

@@ -11,8 +11,7 @@ using Newtonsoft.Json;
 
 namespace WDS_Dispatches
 {
-    public class Dispatch
-    {
+    public class Dispatch {
         [JsonProperty("recipient")]
         public string Recipient { get; set; }
 
@@ -61,8 +60,7 @@ namespace WDS_Dispatches
         }
     }
 
-    public class DispatchState
-    {
+    public class DispatchState {
         [JsonIgnore]
         public static Random _rnd;
 
@@ -126,6 +124,12 @@ namespace WDS_Dispatches
         }
 
         public void Serialize() {
+            if(!Scenario.LoadedCorrectly()) {
+                // Don't create a dispatch state on disk if the scenario data
+                // wasn't loaded correctly
+                return;
+            }
+            
             string json = JsonConvert.SerializeObject(this, Formatting.Indented);
 
             string ext = "dispatch";
@@ -199,8 +203,7 @@ namespace WDS_Dispatches
             }
         }
 
-        public void DecDispatchCount(string sender)
-        {
+        public void DecDispatchCount(string sender) {
             Dictionary<string, int> dispatchesSentTurn = NumDispatchesSent[CurrentTurn];
 
             if (dispatchesSentTurn.ContainsKey(sender)) {
