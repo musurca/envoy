@@ -510,7 +510,7 @@ namespace WDS_Dispatches
                 OpenFileDialog dialog = new OpenFileDialog()
             ) {
                 dialog.InitialDirectory = @"C:\WDS";
-                dialog.Filter = "Battle files (*.btl;*.bte)|*.btl;*.bte";
+                dialog.Filter = "Battle files (*.btl;*.bte;*.btc)|*.btl;*.bte;*.btc";
                 dialog.FilterIndex = 0;
                 dialog.RestoreDirectory = true;
 
