@@ -270,7 +270,10 @@ namespace WDS_Dispatches
 
                 items = line.Split();
             }
-            if (items[1] != "A") {
+
+            string[] formation_types = { "a", "c", "d", "w", "b" };
+
+            if (!formation_types.Contains(items[1].ToLower())) {
                 // TODO: might be a supply unit
                 return true;
             }
@@ -532,7 +535,7 @@ namespace WDS_Dispatches
                 mapfile = new ScenarioReader(all_lines);
             }
             mapfile.Reset();
-
+            
             if(!ReadScenarioMap(mapfile, x, y, width, height)) {
                 MessageBox.Show(
                     "Can't read scenario map at " + map_path + "!",
@@ -772,6 +775,15 @@ namespace WDS_Dispatches
             return null;
         }
 
+        private TreeNode SearchTreeViewByText(System.Windows.Forms.TreeView tree, string text) {
+            foreach(TreeNode node in tree.Nodes) {
+                TreeNode next = FindTreeNodeByText(node, text);
+                if (next != null) return next;  
+            }
+
+            return null;
+        }
+
         public void UpdateUnitLocations(ScenarioReader scenario) {
             // Store current position of all leader units
             Dictionary<string, bool> unitsInScenario = new Dictionary<string, bool>();
@@ -834,9 +846,10 @@ namespace WDS_Dispatches
                     if ((bool)unit["friendly"]) {
                         string node_name = (string)unit["node_name"];
                         Location loc = (Location)unit["location"];
+                        string unit_code = (string)unit["code"];
 
-                        TreeNode recipResult = FindTreeNodeByText(_tvRecip.Nodes[0], node_name);
-                        TreeNode senderResult = FindTreeNodeByText(_tvSender.Nodes[0], node_name);
+                        TreeNode recipResult = SearchTreeViewByText(_tvRecip, node_name);
+                        TreeNode senderResult = SearchTreeViewByText(_tvSender, node_name);
                         if (recipResult != null && senderResult != null) {
                             if (loc.IsPresent()) {
                                 recipResult.ForeColor = System.Drawing.Color.Black;
@@ -994,6 +1007,7 @@ namespace WDS_Dispatches
             if (friendly) {
                 // show it on the list
                 headNode.Nodes.Add(nodeName);
+                headNode.Nodes[headNode.Nodes.Count - 1].ForeColor = System.Drawing.Color.Gray;
             }
 
             TreeNode subNode;
@@ -1191,6 +1205,7 @@ namespace WDS_Dispatches
                 
                 if (friendly) {
                     _tvRecip.Nodes.Add(nodeName);
+                    _tvRecip.Nodes[_tvRecip.Nodes.Count - 1].ForeColor = System.Drawing.Color.Gray;
                 }
 
                 TreeNode armyNode;
@@ -1258,6 +1273,8 @@ namespace WDS_Dispatches
         private void CopyNodes(TreeNodeCollection nodes_to, TreeNodeCollection nodes_from) {
             foreach (TreeNode node in nodes_from) {
                 nodes_to.Add(node.Text);
+                nodes_to[nodes_to.Count - 1].ForeColor = node.ForeColor;
+
                 TreeNodeCollection subnodes_to = nodes_to[nodes_to.Count - 1].Nodes;
                 CopyNodes(subnodes_to, node.Nodes);
             }
