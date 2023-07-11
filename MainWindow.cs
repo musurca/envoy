@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
@@ -69,7 +70,9 @@ namespace WDS_Dispatches
             }
         }
 
-        private void SetDispatchesRemaining(int cur_dispatches, int max_dispatches) {
+        private void SetDispatchesRemaining(int sent_dispatches, int max_dispatches) {
+            int cur_dispatches = max_dispatches - sent_dispatches;
+
             if (barDispatchesLeft.InvokeRequired) {
                 barDispatchesLeft.Invoke(
                     (MethodInvoker)(
@@ -97,6 +100,28 @@ namespace WDS_Dispatches
             }
         }
 
+        private void ClearMessageHistory() {
+            if (boxMessageHistory.InvokeRequired) {
+                boxMessageHistory.Invoke((MethodInvoker)(
+                    () => boxMessageHistory.Clear()
+                ));
+            } else {
+                boxMessageHistory.Clear();
+            }
+        }
+
+        private void AppendMessageHistory(string text) {
+            if (boxMessageHistory.InvokeRequired) {
+                boxMessageHistory.Invoke(
+                    (MethodInvoker)(
+                        () => boxMessageHistory.Text += text
+                    )
+                );
+            } else {
+                boxMessageHistory.Text += text;
+            }
+        }
+
         private void UpdateSelection() {
             if (messageBody.InvokeRequired) {
                 messageBody.Invoke((MethodInvoker)(() => messageBody.Clear()));
@@ -114,7 +139,7 @@ namespace WDS_Dispatches
                     DisableSending();
                 }
                 SetDispatchesRemaining(
-                    _dispatchState.Settings.DispatchesPerLeader - dispatchesSent,
+                    dispatchesSent,
                     _dispatchState.Settings.DispatchesPerLeader
                 );
 
@@ -144,13 +169,7 @@ namespace WDS_Dispatches
                     }
 
                     // Populate message history
-                    if (boxMessageHistory.InvokeRequired) {
-                        boxMessageHistory.Invoke((MethodInvoker)(
-                            () => boxMessageHistory.Clear()
-                        ));
-                    } else {
-                        boxMessageHistory.Clear();
-                    }
+                    ClearMessageHistory();
 
                     List<Dispatch> messageHistoryList = new List<Dispatch>();
                     for (int i = _dispatchState.CurrentTurn; i >= 1; i--) {
@@ -167,15 +186,8 @@ namespace WDS_Dispatches
                                 turnHeader += "FROM: " + d.Sender + " \n\n";
                                 turnHeader += d.Message + "\n\n\n";
                             }
-                            if (boxMessageHistory.InvokeRequired) {
-                                boxMessageHistory.Invoke(
-                                    (MethodInvoker)(
-                                        () => boxMessageHistory.Text += turnHeader
-                                    )
-                                );
-                            } else {
-                                boxMessageHistory.Text += turnHeader;
-                            }
+
+                            AppendMessageHistory(turnHeader);
 
                             messageHistoryList.Clear();
                         }
@@ -380,6 +392,18 @@ namespace WDS_Dispatches
             ShowSettingsWindow();
         }
 
+        private void SetTurnLabel(string text) {
+            if (labelTurnCount.InvokeRequired) {
+                labelTurnCount.Invoke(
+                    (MethodInvoker)(
+                        () => labelTurnCount.Text = text
+                    )
+                );
+            } else {
+                labelTurnCount.Text = text;
+            }
+        }
+
         private void UpdateScenarioLabels() {
             SetScenarioName(
                     _scenarioData.GetScenarioName() + ", " +
@@ -387,15 +411,27 @@ namespace WDS_Dispatches
                     _scenarioData.GetScenarioTime()
                 );
 
-            if (labelTurnCount.InvokeRequired) {
-                labelTurnCount.Invoke(
-                    (MethodInvoker)(
-                        () => labelTurnCount.Text = "Turn " + _scenarioData.GetCurrentTurn() + " of " + _scenarioData.GetMaxTurns()
-                    )
-                );
-            } else {
-                labelTurnCount.Text = "Turn " + _scenarioData.GetCurrentTurn() + " of " + _scenarioData.GetMaxTurns();
-            }
+            SetTurnLabel("Turn " + _scenarioData.GetCurrentTurn() + " of " + _scenarioData.GetMaxTurns());
+        }
+
+        private void ResetWindowState() {
+            treeRecipient.BeginUpdate();
+            treeRecipient.Nodes.Clear();
+            treeRecipient.EndUpdate();
+            treeSender.BeginUpdate();
+            treeSender.Nodes.Clear();
+            treeSender.EndUpdate();
+            
+            SelectRecipient();
+            SelectSender();
+
+            editToolStripMenuItem.Enabled = false;
+            settingsToolStripMenuItem1.Enabled = false;
+            advancedToolStripMenuItem.Enabled = false;
+            changeArmyToolStripMenuItem.Enabled = false;
+
+            SetScenarioName("Please load a battle.");
+            SetTurnLabel("(File -> Load...)");
         }
 
         private void PopulateContextMenu() {
@@ -403,9 +439,8 @@ namespace WDS_Dispatches
 
             List<string> unitNames = new List<string>();
             List<Dictionary<string, object>> unitdata = _dispatchState.Scenario.GetAllUnits();
-            foreach (Dictionary<string, object> unit in unitdata) {
-                bool isFriendly = (bool)unit["friendly"];
-                if (isFriendly) {
+            foreach (Dictionary<string, object> unit in unitdata) { 
+                if (_dispatchState.Scenario.IsUnitFriendly(unit)) {
                     string unitname = (string)unit["node_name"];
                     string utype = (string)unit["type"];
                     if (utype == "Leader") {
@@ -525,17 +560,18 @@ namespace WDS_Dispatches
                 _dispatchState = DispatchState.Deserialize(battlePath, treeRecipient, treeSender);
                 if (_dispatchState.Scenario.LoadedCorrectly()) {
                     _scenarioData = _dispatchState.Scenario;
-                    if (_dispatchState.CurrentTurn < _scenarioData.GetCurrentTurn()) {
-                        UpdateDispatchState();
-                    } else {
-                        UpdateScenarioLabels();
-                    }
+                    _scenarioData.PopulateUI();
+                    UpdateScenarioLabels();
 
                     if (_dispatchState.Settings == null) {
                         ShowSettingsWindow(true);
                     } else if (!_dispatchState.Settings.Validate()) {
                         // old settings, need update
                         ShowSettingsWindow(true);
+                    }
+
+                    if (_dispatchState.CurrentTurn < _scenarioData.GetCurrentTurn()) {
+                        UpdateDispatchState();
                     }
 
                     PopulateContextMenu();
@@ -548,6 +584,14 @@ namespace WDS_Dispatches
 
                     editToolStripMenuItem.Enabled = true;
                     settingsToolStripMenuItem1.Enabled = true;
+
+                    if (_dispatchState.CurrentTurn == 1) {
+                        advancedToolStripMenuItem.Enabled = true;
+                        changeArmyToolStripMenuItem.Enabled = true;
+                    } else {
+                        advancedToolStripMenuItem.Enabled = false;
+                        changeArmyToolStripMenuItem.Enabled = false;
+                    }
 
                     if (_fileTimer != null) {
                         _fileTimer.Stop();
@@ -569,6 +613,18 @@ namespace WDS_Dispatches
                     _fileTimer.AutoReset = true;
                     _fileTimer.Elapsed += TimerElapsed;
                     _fileTimer.Start();
+                } else {
+                    ResetWindowState();
+
+                    if (_fileTimer != null) {
+                        _fileTimer.Stop();
+                        _fileTimer.Dispose();
+                    }
+                    if (_watcher != null) {
+                        _watcher.Dispose();
+                    }
+
+                    _dispatchState = null;
                 }
             }
         }
@@ -591,6 +647,10 @@ namespace WDS_Dispatches
                     rd_thread.Start();
                 }
             }
+
+            // Disable army changing
+            advancedToolStripMenuItem.Enabled = false;
+            changeArmyToolStripMenuItem.Enabled = false;
         }
 
         private void TimerElapsed(object sender, ElapsedEventArgs e) {
@@ -687,6 +747,20 @@ namespace WDS_Dispatches
                 System.Diagnostics.Process.Start("Envoy_Manual_v10.pdf");
             } catch(Exception) {
                 // do nothing
+            }
+        }
+
+        private void changeArmyToolStripMenuItem_Click(object sender, EventArgs e) {
+            AdvChangeArmy aca = new AdvChangeArmy(
+                _scenarioData.GetNations(), 
+                _dispatchState.Nation
+            );
+            if(aca.ShowDialog() == DialogResult.OK) {
+                _dispatchState.ChangeNation(aca.SelectedArmy);
+                _scenarioData.PopulateUI();
+
+                SelectRecipient();
+                SelectSender();
             }
         }
     }

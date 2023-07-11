@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WDS_Dispatches
 {
@@ -55,6 +53,7 @@ namespace WDS_Dispatches
         private bool    _loadedCorrectly;
         private string  _scenarioName;
         private int     _armyPlayingIndex;
+        private int     _armyPlayingIndexOriginal;
         private int     _currentTurn;
         private string  _currentDay;
         private string  _currentTime;
@@ -91,6 +90,20 @@ namespace WDS_Dispatches
 
         public string GetScenarioTime() {
             return _currentTime;
+        }
+
+        public List<string> GetNations() {
+            return _nations;
+        }
+
+        public void SetNation(string nation) {
+            if (_nations.Contains(nation)) {
+                _armyPlayingIndex = _nations.IndexOf(nation);
+            }
+        }
+
+        public string GetNation() {
+            return _nations[_armyPlayingIndex];
         }
 
         public bool IsPBEM() { return _isPBEM; }
@@ -298,6 +311,7 @@ namespace WDS_Dispatches
             }
 
             readLine = ReadString(f);
+
             while (readLine.ToLower() != "end") {
                 char lineType = char.ToLower(readLine[0]);
                 if (lineType == 'l') {
@@ -364,15 +378,7 @@ namespace WDS_Dispatches
                 line = ReadString(oob);
             }
 
-            if(!PopulateArmies()) {
-                MessageBox.Show(
-                    "Can't find a valid army!",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-                return false;
-            }
+            PopulateArmies();
 
             return true;
         }
@@ -409,7 +415,7 @@ namespace WDS_Dispatches
                 day = int.Parse(items[2]);
                 hour = int.Parse(items[3]);
                 minute = int.Parse(items[4]);
-                _armyPlayingIndex = int.Parse(items[5]);
+                _armyPlayingIndex = _armyPlayingIndexOriginal = int.Parse(items[5]);
                 phase = int.Parse(items[6]);
                 _currentTurn = int.Parse(items[7]);
                 _maxTurns = int.Parse(items[8]);
@@ -697,7 +703,7 @@ namespace WDS_Dispatches
                 scenarioEra = ERA_MODERN;
             }
 
-            if (armyPlaying != _armyPlayingIndex) {
+            if (armyPlaying != _armyPlayingIndexOriginal) {
                 // not our turn
                 return false;
             }
@@ -728,7 +734,7 @@ namespace WDS_Dispatches
                 return false;
             }
 
-            if(currentTurn > _currentTurn && armyPlaying == _armyPlayingIndex && phase == 0) {
+            if(currentTurn > _currentTurn && armyPlaying == _armyPlayingIndexOriginal && phase == 0) {
                 return true;
             }
 
@@ -784,6 +790,11 @@ namespace WDS_Dispatches
             return null;
         }
 
+        public bool IsUnitFriendly(Dictionary<string, object> unit) {
+            string nation = (string)unit["nation"];
+            return GetNation() == nation;
+        }
+
         public void UpdateUnitLocations(ScenarioReader scenario) {
             // Store current position of all leader units
             Dictionary<string, bool> unitsInScenario = new Dictionary<string, bool>();
@@ -816,7 +827,10 @@ namespace WDS_Dispatches
 
                                 if (_unitPresent.ContainsKey(code)) {
                                     _unitPresent[code] = true;
-                                    unitsInScenario.Remove(code);
+
+                                    if (unitsInScenario.ContainsKey(code)) {
+                                        unitsInScenario.Remove(code);
+                                    }
                                 } else {
                                     _unitPresent.Add(code, true);
                                 }
@@ -835,18 +849,21 @@ namespace WDS_Dispatches
                 foreach (Dictionary<string, object> unit in units) {
                     if ((string)unit["code"] == code) {
                         unit["location"] = new Location();
-                        break;
                     }
                 }
             }
+        }
 
+        public void UpdateHQHierarchy() {
             // Color-code present/absent units in the treeview
             if (_tvRecip.Nodes.Count > 0) {
+                // Update locations of units in scenario
+                List<Dictionary<string, object>> units = _unitData.Values.ToList();
+
                 foreach (Dictionary<string, object> unit in units) {
-                    if ((bool)unit["friendly"]) {
+                    if (IsUnitFriendly(unit)) {
                         string node_name = (string)unit["node_name"];
                         Location loc = (Location)unit["location"];
-                        string unit_code = (string)unit["code"];
 
                         TreeNode recipResult = SearchTreeViewByText(_tvRecip, node_name);
                         TreeNode senderResult = SearchTreeViewByText(_tvSender, node_name);
@@ -867,7 +884,7 @@ namespace WDS_Dispatches
         public bool InEnemyZOC(Location loc) {
             List<Dictionary<string, object>> units = _unitData.Values.ToList();
             foreach(Dictionary<string, object> unit in units) {
-                bool isFriendly = (bool)unit["friendly"];
+                bool isFriendly = IsUnitFriendly(unit);
                 Location enemy_loc = (Location)unit["location"];
                 if(!isFriendly && enemy_loc.IsPresent()) {
                     if(loc.DistanceTo(enemy_loc) <= 1) {
@@ -914,150 +931,21 @@ namespace WDS_Dispatches
             _loadedCorrectly = true;
         }
 
-        public void PopulateFormations(
-            string unitName,
-            string parentUnitname,
-            string parentNodename,
-            TreeNode headNode, 
-            List<Dictionary<string, object>> formation,
-            string currentCode,
-            bool friendly
-        ) {
-            if(formation.Count == 0) { return; }
-
-            // find the leader on the ground, if he's in the scenario
-            // otherwise use the default commander
-            bool leaderFound = false;
-            int leaderIndex = 0;
-            Dictionary<string, object> leaderUnit = null;
-            while (!leaderFound && leaderIndex < formation.Count()) {
-                Dictionary<string, object> test_unit = formation[leaderIndex];
-                if ((string)test_unit["type"] == "Leader") {
-                    string leaderCode = currentCode + "." + (leaderIndex + 1);
-                    if (_unitPresent.ContainsKey(leaderCode)) {
-                        leaderFound = true;
-                        leaderUnit = test_unit;
-                    } else {
-                        leaderIndex++;
-                    }
-                } else {
-                    // have run out of leaders
-                    break;
-                }
-            }
-
-            string nodeName, messageName;
-
-            // no leaders present? find A leader
-            if (!leaderFound) {
-                for (int j = 0; j < formation.Count(); j++) {
-                    Dictionary<string, object> test_unit = formation[j];
-                    if ((string)test_unit["type"] == "Leader") {
-                        leaderIndex = j;
-                        leaderUnit = test_unit;
-                        leaderFound = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!leaderFound) {
-                // no leaders present, find a unit instead
-                for (int i = 0; i < formation.Count(); i++) {
-                    Dictionary<string, object> test_unit = formation[i];
-                    if ((string)test_unit["type"] == "Unit") {
-                        leaderIndex = i;
-                        leaderFound = true;
-                        break;
-                    }
-                }
-                nodeName = GetAvailableUnitName(unitName);
-                messageName = unitName + ", " + parentUnitname;
-
-                if (!leaderFound) {
-                    leaderIndex = -1;
-                    // Add a dummy unit
-                    AddUnit(
-                        currentCode + ".0",
-                        nodeName,
-                        parentNodename,
-                        messageName,
-                        new Location(),
-                        friendly,
-                        "Leader"
-                    );
-                }
-            } else {
-                string leaderName = (string)leaderUnit["name"];
-                nodeName = GetAvailableUnitName(unitName + " (" + leaderName + ")");
-                messageName = leaderName + ", " + unitName;
-
-                // Index node to unit data
-                AddUnit(
-                    currentCode + "." + (leaderIndex + 1),
-                    nodeName,
-                    parentNodename,
-                    messageName,
-                    new Location(),
-                    friendly,
-                    "Leader"
+        public bool PopulateUI() {
+            if(!PopulateTreeWithArmies()) {
+                MessageBox.Show(
+                    "Can't find a valid army!",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
                 );
+                return false;
             }
+            UpdateHQHierarchy();
 
-            if (friendly) {
-                // show it on the list
-                headNode.Nodes.Add(nodeName);
-                headNode.Nodes[headNode.Nodes.Count - 1].ForeColor = System.Drawing.Color.Gray;
-            }
-
-            TreeNode subNode;
-            if (friendly) {
-                subNode = headNode.Nodes[headNode.Nodes.Count - 1];
-            } else {
-                subNode = null;
-            }
-
-            for (int i = 0; i < formation.Count; i++) {
-                Dictionary<string, object> unit = formation[i];
-
-                string subunitType = (string)unit["type"];
-                string newCode = currentCode + "." + (i + 1).ToString();
-                string subunitName = (string)unit["name"];
-
-                if (subunitType != "Leader" && subunitType != "Unit") {
-                    List<Dictionary<string, object>> formUnits = (List<Dictionary<string, object>>)unit["units"];
-                    PopulateFormations(
-                        subunitName, 
-                        unitName, 
-                        nodeName, 
-                        subNode, 
-                        formUnits, 
-                        newCode, 
-                        friendly
-                    );
-                } else if (subunitType == "Unit") {
-                    string unitId; 
-                    if(i == leaderIndex) {
-                        // Using it as HQ proxy for receiving dispatches
-                        unitId = nodeName;
-                        subunitName = unitName;
-                    } else {
-                        unitId = subunitName + " " + newCode;
-                    }
-
-                    AddUnit(
-                        newCode,
-                        unitId,
-                        parentNodename,
-                        subunitName,
-                        new Location(),
-                        friendly,
-                        subunitType
-                    );
-                }
-            }
+            return true;
         }
-        
+
         private string GetAvailableUnitName(string uname) {
             int dupUnitNames = 0;
             string nodeName = uname;
@@ -1070,14 +958,15 @@ namespace WDS_Dispatches
             return nodeName;
         }
 
-        private void AddUnit(
+        private Dictionary<string, object> AddUnit(
             string code,
             string nodeName,
             string parentNode,
             string messageName,
             Location location,
-            bool isFriendly,
-            string uType
+            string nation,
+            string uType,
+            string name
         ) {
             Dictionary<string, object> unitDict = new Dictionary<string, object> {
                 { "code",           code  },
@@ -1085,17 +974,114 @@ namespace WDS_Dispatches
                 { "parent_node",    parentNode                                  },
                 { "message_name",   messageName        },
                 { "location",       location                      },
-                { "friendly",       isFriendly                            },
-                { "type",           uType                            }
+                { "nation",         nation                            },
+                { "type",           uType                            },
+                { "name",           name },
             };
             _unitData.Add(nodeName, unitDict);
+
+            return unitDict;
         }
 
-        private bool PopulateArmies() {
+        private void AppendUnit(
+            Dictionary<string, object> unit,
+            string code,
+            string nodeName,
+            string parentNode,
+            string messageName,
+            Location location,
+            string nation,
+            string uType
+        ) {
+            unit["code"] = code;
+            unit["node_name"] = nodeName;
+            unit["parent_node"] = parentNode;
+            unit["message_name"] = messageName;
+            unit["location"] = location;
+            unit["nation"] = nation;
+            unit["type"] = uType;
+
+            if (nodeName != "") {
+                _unitData[nodeName] = unit;
+            }
+        }
+
+        private void PopulateTreeNode(
+            TreeNode headNode, 
+            List<Dictionary<string, object>> units, 
+            string currentCode
+        ) {
+            if (units.Count == 0) { return; }
+
+            // find the leader on the ground, if he's in the scenario
+            // otherwise use the default commander
+            int leaderIndex = 0;
+            bool leaderFound = false;
+            Dictionary<string, object> leaderUnit = null;
+            foreach(Dictionary<string, object> unit in units) {
+                if ((string)unit["type"] == "Leader") {
+                    string leaderCode = currentCode + "." + (leaderIndex + 1);
+                    if (_unitPresent.ContainsKey(leaderCode)) {
+                        leaderFound = true;
+                        leaderUnit = unit;
+                    } else {
+                        leaderIndex++;
+                    }
+                } else {
+                    // have run out of leaders
+                    break;
+                }
+
+                leaderIndex++;
+            }
+
+            // no leaders present? find A leader
+            if (!leaderFound) {
+                foreach(Dictionary<string, object> unit in units) {
+                    if ((string)unit["type"] == "Leader") {
+                        leaderFound = true;
+                        leaderUnit = unit;
+                        break;
+                    }
+                }
+            }
+            if (!leaderFound) {
+                // no leaders at all?? find a unit
+                foreach (Dictionary<string, object> unit in units) {
+                    if ((string)unit["type"] == "Unit") {
+                        leaderUnit = unit;
+                        break;
+                    }
+                }
+            }
+
+            // show it on the list
+            string nodeName = (string)leaderUnit["node_name"];
+            headNode.Nodes.Add(nodeName);
+            headNode.Nodes[headNode.Nodes.Count - 1].ForeColor = System.Drawing.Color.Gray;
+
+            TreeNode subNode = headNode.Nodes[headNode.Nodes.Count - 1];
+
+            for (int i = 0; i < units.Count; i++) {
+                Dictionary<string, object> unit = units[i];
+
+                string subunitType = (string)unit["type"];
+                string newCode = currentCode + "." + (i + 1).ToString();
+
+                if (subunitType != "Leader" && subunitType != "Unit") {
+                    List<Dictionary<string, object>> formUnits = (
+                        List<Dictionary<string, object>>
+                    )unit["units"];
+                    PopulateTreeNode(subNode, formUnits, newCode);
+                }
+            }
+        }
+
+        private bool PopulateTreeWithArmies() {
             string friendlyNation;
             if (_armyPlayingIndex < _nations.Count) {
                 friendlyNation = _nations[_armyPlayingIndex];
-            } else if(_armyPlayingIndex < _armies.Count) {
+            } else if (_armyPlayingIndex < _armies.Count) {
                 Dictionary<string, object> friendlyArmy = _armies[_armyPlayingIndex];
                 friendlyNation = (string)friendlyArmy["nation"];
             } else {
@@ -1103,16 +1089,123 @@ namespace WDS_Dispatches
                 return false;
             }
 
-            // Populate the OOBs for recipient and sender
             _tvRecip.BeginUpdate();
             _tvRecip.Nodes.Clear();
+            for (int i = 0; i < _armies.Count; i++) {
+                Dictionary<string, object> army = _armies[i];
+                string armyNation = (string)army["nation"];
+
+                string codePrefix = (i + 1).ToString();
+
+                bool friendly = (armyNation == friendlyNation);
+
+                List<Dictionary<string, object>> units = (
+                    List<Dictionary<string, object>>
+                )army["units"];
+
+                if (units.Count() == 0 || !friendly) {
+                    continue;
+                }
+
+                // find the leader on the ground, if he's in the scenario
+                // otherwise use the default commander
+                bool leaderFound = false;
+                int leaderIndex = 0;
+                Dictionary<string, object> leaderUnit = null;
+                while (!leaderFound && leaderIndex < units.Count()) {
+                    Dictionary<string, object> test_unit = units[leaderIndex];
+                    if ((string)test_unit["type"] == "Leader") {
+                        string leaderCode = codePrefix + "." + (leaderIndex + 1);
+                        if (_unitPresent.ContainsKey(leaderCode)) {
+                            leaderFound = true;
+                            leaderUnit = test_unit;
+                        } else {
+                            leaderIndex++;
+                        }
+                    } else {
+                        // have run out of leaders
+                        break;
+                    }
+                }
+
+                // no leaders present? find any leader
+                if (!leaderFound) {
+                    for (int j = 0; j < units.Count(); j++) {
+                        Dictionary<string, object> test_unit = units[j];
+                        if ((string)test_unit["type"] == "Leader") {
+                            leaderFound = true;
+                            leaderUnit = test_unit;
+                            break;
+                        }
+                    }
+                }
+                if (!leaderFound) {
+                    // no leaders at all?? find a unit
+                    for (int j = 0; j < units.Count(); j++) {
+                        Dictionary<string, object> test_unit = units[j];
+                        if ((string)test_unit["type"] == "Unit") {
+                            leaderUnit = test_unit;
+                            break;
+                        }
+                    }
+                }
+
+                string nodeName = (string)leaderUnit["node_name"];
+
+                // Add to the tree
+                _tvRecip.Nodes.Add(nodeName);
+                _tvRecip.Nodes[_tvRecip.Nodes.Count - 1].ForeColor = System.Drawing.Color.Gray;
+
+                TreeNode subNode = _tvRecip.Nodes[_tvRecip.Nodes.Count - 1];
+
+                for (int j = 0; j < units.Count; j++) {
+                    Dictionary<string, object> unit = units[j];
+                    string unitType = (string)unit["type"];
+
+                    if (unitType != "Leader" && unitType != "Unit") {
+                        List<Dictionary<string, object>> formation = (
+                            List<Dictionary<string, object>>
+                        )unit["units"];
+                        
+                        string newCode = codePrefix + "." + (j + 1).ToString();
+
+                        PopulateTreeNode(
+                            subNode,
+                            formation,
+                            newCode
+                        );
+                    }
+                }
+            }
+            _tvRecip.EndUpdate();
+            _tvRecip.ExpandAll();
+
+            // Copy same nodes to sender list
+            _tvSender.BeginUpdate();
+            _tvSender.Nodes.Clear();
+            CopyNodes(_tvSender.Nodes, _tvRecip.Nodes);
+            _tvSender.EndUpdate();
+            _tvSender.ExpandAll();
+
+            return true;
+        }
+
+        private void CopyNodes(TreeNodeCollection nodes_to, TreeNodeCollection nodes_from) {
+            foreach (TreeNode node in nodes_from) {
+                nodes_to.Add(node.Text);
+                nodes_to[nodes_to.Count - 1].ForeColor = node.ForeColor;
+
+                TreeNodeCollection subnodes_to = nodes_to[nodes_to.Count - 1].Nodes;
+                CopyNodes(subnodes_to, node.Nodes);
+            }
+        }
+
+        private void PopulateArmies() {
             for (int i = 0; i < _armies.Count; i++)
             {
                 Dictionary<string, object> army = _armies[i];
                 string armyNation = (string)army["nation"];
                 string armyName = (string)army["name"];
-
-                bool friendly = (armyNation == friendlyNation);
 
                 string codePrefix = (i + 1).ToString();
 
@@ -1175,15 +1268,17 @@ namespace WDS_Dispatches
                     if (!leaderFound) {
                         leaderIndex = -1;
                         // Add a dummy unit
-                        AddUnit(
+                        leaderUnit = AddUnit(
                             codePrefix + ".0",
                             nodeName,
                             "",
                             messageName,
                             new Location(),
-                            friendly,
-                            "Leader"
+                            armyNation,
+                            "Leader",
+                            "Anonymous"
                         );
+                        units.Add(leaderUnit);
                     }
                 } else {
                     // Add the leader
@@ -1192,27 +1287,16 @@ namespace WDS_Dispatches
                     messageName = leaderName + ", " + armyName;
 
                     // Index node to unit data
-                    AddUnit(
+                    AppendUnit(
+                        leaderUnit,
                         codePrefix + "." + (leaderIndex + 1),
                         nodeName,
                         "",
                         messageName,
                         new Location(),
-                        friendly,
+                        armyNation,
                         "Leader"
                     );
-                }
-                
-                if (friendly) {
-                    _tvRecip.Nodes.Add(nodeName);
-                    _tvRecip.Nodes[_tvRecip.Nodes.Count - 1].ForeColor = System.Drawing.Color.Gray;
-                }
-
-                TreeNode armyNode;
-                if (friendly) {
-                    armyNode = _tvRecip.Nodes[_tvRecip.Nodes.Count - 1];
-                } else {
-                    armyNode = null;
                 }
 
                 for (int j = 0; j < units.Count; j++) {
@@ -1227,13 +1311,12 @@ namespace WDS_Dispatches
                             List<Dictionary<string, object>>
                         ) unit["units"];
                         PopulateFormations(
+                            armyNation,
                             unitName, 
                             armyName, 
                             nodeName, 
-                            armyNode, 
                             formation, 
-                            newCode, 
-                            friendly
+                            newCode
                         );
                     } else if(unitType == "Unit") {
                         string unitId;
@@ -1245,38 +1328,152 @@ namespace WDS_Dispatches
                         } else {
                             unitId = unitName + " " + newCode;
                         }
-                        AddUnit(
+
+                        AppendUnit(
+                            unit,
                             newCode,
                             unitId,
                             nodeName,
                             unitName,
                             new Location(),
-                            friendly,
+                            armyNation,
                             unitType
                         );
                     }
                 }
             }
-            _tvRecip.EndUpdate();
-            _tvRecip.ExpandAll();
-
-            // Copy same nodes to sender list
-            _tvSender.BeginUpdate();
-            _tvSender.Nodes.Clear();
-            CopyNodes(_tvSender.Nodes, _tvRecip.Nodes);
-            _tvSender.EndUpdate();
-            _tvSender.ExpandAll();
-
-            return true;
         }
 
-        private void CopyNodes(TreeNodeCollection nodes_to, TreeNodeCollection nodes_from) {
-            foreach (TreeNode node in nodes_from) {
-                nodes_to.Add(node.Text);
-                nodes_to[nodes_to.Count - 1].ForeColor = node.ForeColor;
+        public void PopulateFormations(
+            string armyNation,
+            string unitName,
+            string parentUnitname,
+            string parentNodename,
+            List<Dictionary<string, object>> formation,
+            string currentCode
+        ) {
+            if (formation.Count == 0) { return; }
 
-                TreeNodeCollection subnodes_to = nodes_to[nodes_to.Count - 1].Nodes;
-                CopyNodes(subnodes_to, node.Nodes);
+            // find the leader on the ground, if he's in the scenario
+            // otherwise use the default commander
+            bool leaderFound = false;
+            int leaderIndex = 0;
+            Dictionary<string, object> leaderUnit = null;
+            while (!leaderFound && leaderIndex < formation.Count()) {
+                Dictionary<string, object> test_unit = formation[leaderIndex];
+                if ((string)test_unit["type"] == "Leader") {
+                    string leaderCode = currentCode + "." + (leaderIndex + 1);
+                    if (_unitPresent.ContainsKey(leaderCode)) {
+                        leaderFound = true;
+                        leaderUnit = test_unit;
+                    } else {
+                        leaderIndex++;
+                    }
+                } else {
+                    // have run out of leaders
+                    break;
+                }
+            }
+
+            string nodeName, messageName;
+
+            // no leaders present? find A leader
+            if (!leaderFound) {
+                for (int j = 0; j < formation.Count(); j++) {
+                    Dictionary<string, object> test_unit = formation[j];
+                    if ((string)test_unit["type"] == "Leader") {
+                        leaderIndex = j;
+                        leaderUnit = test_unit;
+                        leaderFound = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!leaderFound) {
+                // no leaders present, find a unit instead
+                for (int i = 0; i < formation.Count(); i++) {
+                    Dictionary<string, object> test_unit = formation[i];
+                    if ((string)test_unit["type"] == "Unit") {
+                        leaderIndex = i;
+                        leaderFound = true;
+                        break;
+                    }
+                }
+                nodeName = GetAvailableUnitName(unitName);
+                messageName = unitName + ", " + parentUnitname;
+
+                if (!leaderFound) {
+                    leaderIndex = -1;
+                    // Add a dummy unit
+                    leaderUnit = AddUnit(
+                        currentCode + ".0",
+                        nodeName,
+                        parentNodename,
+                        messageName,
+                        new Location(),
+                        armyNation,
+                        "Leader",
+                        "Anonymous"
+                    );
+                    formation.Add(leaderUnit);
+                }
+            } else {
+                string leaderName = (string)leaderUnit["name"];
+                nodeName = GetAvailableUnitName(unitName + " (" + leaderName + ")");
+                messageName = leaderName + ", " + unitName;
+
+                // Index node to unit data
+                AppendUnit(
+                    leaderUnit,
+                    currentCode + "." + (leaderIndex + 1),
+                    nodeName,
+                    parentNodename,
+                    messageName,
+                    new Location(),
+                    armyNation,
+                    "Leader"
+                );
+            }
+
+            for (int i = 0; i < formation.Count; i++) {
+                Dictionary<string, object> unit = formation[i];
+
+                string subunitType = (string)unit["type"];
+                string newCode = currentCode + "." + (i + 1).ToString();
+                string subunitName = (string)unit["name"];
+
+                if (subunitType != "Leader" && subunitType != "Unit") {
+                    List<Dictionary<string, object>> formUnits = (List<Dictionary<string, object>>)unit["units"];
+                    PopulateFormations(
+                        armyNation,
+                        subunitName,
+                        unitName,
+                        nodeName,
+                        formUnits,
+                        newCode
+                    );
+                } else if (subunitType == "Unit") {
+                    string unitId;
+                    if (i == leaderIndex) {
+                        // Using it as HQ proxy for receiving dispatches
+                        unitId = nodeName;
+                        subunitName = unitName;
+                    } else {
+                        unitId = subunitName + " " + newCode;
+                    }
+
+                    AppendUnit(
+                        unit,
+                        newCode,
+                        unitId,
+                        parentNodename,
+                        subunitName,
+                        new Location(),
+                        armyNation,
+                        subunitType
+                    );
+                }
             }
         }
 
@@ -1351,6 +1548,7 @@ namespace WDS_Dispatches
 
             ParseScenarioHeader(scenario);
             UpdateUnitLocations(scenario);
+            UpdateHQHierarchy();
 
             _hasUpdated = true;
         }

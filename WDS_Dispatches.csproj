@@ -96,6 +96,12 @@
     <Compile Include="EnterPresetName.Designer.cs">
       <DependentUpon>EnterPresetName.cs</DependentUpon>
     </Compile>
+    <Compile Include="AdvChangeArmy.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AdvChangeArmy.Designer.cs">
+      <DependentUpon>AdvChangeArmy.cs</DependentUpon>
+    </Compile>
     <Compile Include="Location.cs" />
     <Compile Include="ReviewDispatches.cs">
       <SubType>Form</SubType>
@@ -121,6 +127,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="About.resx">
       <DependentUpon>About.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AdvChangeArmy.resx">
+      <DependentUpon>AdvChangeArmy.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="EnterPresetName.resx">
       <DependentUpon>EnterPresetName.cs</DependentUpon>

@@ -79,6 +79,9 @@ namespace WDS_Dispatches
         [JsonProperty("current_turn")]
         public int CurrentTurn { get; set; }
 
+        [JsonProperty("nation")]
+        public string Nation { get; set; }
+
         public string BattleFilename { get; set; }
 
         public string MapFilename { get; set; }
@@ -113,6 +116,17 @@ namespace WDS_Dispatches
             }
         }
 
+        public void ChangeNation(string new_nation) {
+            if(Nation != new_nation) {
+                Dispatches.Clear();
+                DispatchesReceived.Clear();
+                NumDispatchesSent.Clear();
+
+                Nation = new_nation;
+                Scenario.SetNation(Nation);
+            }
+        }
+
         public void SetScenarioData(ScenarioData sd) {
             Scenario = sd;
             CurrentTurn = Scenario.GetCurrentTurn();
@@ -121,6 +135,8 @@ namespace WDS_Dispatches
             MapFilename = Scenario.GetMapFilename();
             PDTFilename = Scenario.GetPDTFilename();
             OOBFilename = Scenario.GetOOBFilename();
+
+            Nation = Scenario.GetNation();
         }
 
         public void Serialize() {
@@ -175,6 +191,11 @@ namespace WDS_Dispatches
 
                 // Otherwise, pick up where we left off
                 ds.Scenario = sd;
+                if (ds.Nation != "") {
+                    sd.SetNation(ds.Nation);
+                }
+                
+                ds.Nation = sd.GetNation();
                 return ds;
             }
 
