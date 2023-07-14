@@ -11,7 +11,7 @@ using System.Windows.Forms.VisualStyles;
 namespace WDS_Dispatches {
     public class ScenarioSettings {
         [JsonIgnore]
-        public static int CURRENT_SETTINGS_VERSION = 1;
+        public static int CURRENT_SETTINGS_VERSION = 2;
 
         [JsonIgnore]
         public static string ENVOY_VERSION_NUMBER = "1.04b";
@@ -20,6 +20,7 @@ namespace WDS_Dispatches {
         public int DispatchesPerLeader { get; set; }
         public int DispatchSpeed { get; set; }
         public int MinimumDispatchDelay { get; set; }
+        public int ChanceDispatchDelay { get; set; }
         public int ChanceDispatchLost { get; set; }
         public bool UseChainOfCommand {  get; set; }
         public int InterdictionChance { get; set; }
@@ -30,6 +31,7 @@ namespace WDS_Dispatches {
             DispatchSpeed = 10;
             MinimumDispatchDelay = 1;
             ChanceDispatchLost = 2;
+            ChanceDispatchDelay = 8;
             UseChainOfCommand = true;
             InterdictionChance = 30;
         }

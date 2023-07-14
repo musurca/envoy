@@ -92,6 +92,7 @@ namespace WDS_Dispatches
                 numChanceDispatchLost.Value     = _settings.ChanceDispatchLost;
                 checkUseChainOfCommand.Checked  = _settings.UseChainOfCommand;
                 numInterdictionChance.Value     = _settings.InterdictionChance;
+                numChanceDispatchDelay.Value    = _settings.ChanceDispatchDelay;
             }
         }
 
@@ -105,6 +106,7 @@ namespace WDS_Dispatches
             settings.ChanceDispatchLost     = (int)numChanceDispatchLost.Value;
             settings.UseChainOfCommand      = checkUseChainOfCommand.Checked;
             settings.InterdictionChance     = (int)numInterdictionChance.Value;
+            settings.ChanceDispatchDelay    = (int)numChanceDispatchDelay.Value;
         }
 
         private void btnSave_Click(object sender, EventArgs e)

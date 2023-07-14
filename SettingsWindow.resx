@@ -133,4 +133,7 @@ pass through every element on the chain of
 command. This can significantly lengthen the time
 it takes for the dispatch to be delivered.</value>
   </data>
+  <metadata name="tipInterdiction.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
 </root>

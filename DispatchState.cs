@@ -33,23 +33,28 @@ namespace WDS_Dispatches
         [JsonProperty("recipient_chain")]
         public List<string> RecipientChain { get; set; }
 
+        [JsonProperty("is_invincible")]
+        public bool IsInvincible { get; set; }
+
         public Dispatch() {
 
         }
 
         public Dispatch(
-            string sender, 
-            string recipient, 
-            string message, 
+            string sender,
+            string recipient,
+            string message,
             Location starting_location,
             int turn_sent,
-            List<string> recipientChain)
+            List<string> recipientChain,
+            bool invincible=false)
         {
             this.Sender = sender;
             this.Recipient = recipient;
             this.Message = message;
             this.CurrentLocation = starting_location;
             this.RecipientChain = recipientChain;
+            this.IsInvincible = invincible;
 
             this.TurnsInTransit = 0;
             this.TurnSent = turn_sent;
@@ -209,6 +214,10 @@ namespace WDS_Dispatches
         }
 
         public int DispatchesSentBy(string sender) {
+            if(!NumDispatchesSent.ContainsKey(CurrentTurn)) {
+                NumDispatchesSent.Add(CurrentTurn, new Dictionary<string, int>());
+            }
+
             Dictionary<string, int> dispatchesSentTurn = NumDispatchesSent[CurrentTurn];
 
             if(dispatchesSentTurn.ContainsKey(sender)) {
@@ -220,6 +229,10 @@ namespace WDS_Dispatches
         }
 
         public void IncDispatchCount(string sender) {
+            if (!NumDispatchesSent.ContainsKey(CurrentTurn)) {
+                NumDispatchesSent.Add(CurrentTurn, new Dictionary<string, int>());
+            }
+
             Dictionary<string, int> dispatchesSentTurn = NumDispatchesSent[CurrentTurn];
 
             if (dispatchesSentTurn.ContainsKey(sender)) {
@@ -267,15 +280,26 @@ namespace WDS_Dispatches
             return null;
         }
 
-        public bool SendDispatch(string sender, string recipient, string message, List<string> recipientChain) {
+        public bool SendDispatch(
+            string sender, 
+            string recipient, 
+            string message, 
+            List<string> recipientChain,
+            bool is_invincible=false
+        ) {
             Location sender_location = Scenario.GetUnitLocation(sender);
             Location recipient_location = Scenario.GetUnitLocation(recipient);
 
             if (sender_location.IsPresent() && 
                 recipient_location.IsPresent() &&
-                DispatchesSentBy(sender) < Settings.DispatchesPerLeader
+                (
+                    DispatchesSentBy(sender) < Settings.DispatchesPerLeader || 
+                    is_invincible
+                )
             ) { // max dispatches per sender
-                IncDispatchCount(sender);
+                if (!is_invincible) {
+                    IncDispatchCount(sender);
+                }
 
                 Dispatches.Add(
                     new Dispatch(
@@ -284,7 +308,8 @@ namespace WDS_Dispatches
                         message, 
                         sender_location, 
                         CurrentTurn,
-                        recipientChain
+                        recipientChain,
+                        is_invincible
                     )
                 );
 
@@ -347,7 +372,8 @@ namespace WDS_Dispatches
                                     dispatch.Message + "\"",
                                 dispatch.CurrentLocation,
                                 CurrentTurn,
-                                new List<string>()
+                                new List<string>(),
+                                true
                             )
                         );
                     }
@@ -361,7 +387,7 @@ namespace WDS_Dispatches
                     if (!recipientReached) {
                         // If we haven't already reached our recipient
                         int chance = _rnd.Next(1, 100);
-                        if (chance <= Settings.ChanceDispatchLost) {
+                        if (chance <= Settings.ChanceDispatchLost && !dispatch.IsInvincible) {
                             // Dispatch was lost!
                             dispatchesToRemove.Add(dispatch);
                         } else {
@@ -382,46 +408,61 @@ namespace WDS_Dispatches
                                 target_location = recip_location;
                             }
 
-                            for (int i = 0; i < Settings.DispatchSpeed; i++) {
-                                dispatch.CurrentLocation = dispatch.CurrentLocation.MoveTowards(target_location, 1);
+                            chance = _rnd.Next(1, 100);
+                            if (chance >= Settings.ChanceDispatchDelay || dispatch.IsInvincible) {
+                                for (int i = 0; i < Settings.DispatchSpeed; i++) {
+                                    dispatch.CurrentLocation = dispatch.CurrentLocation.MoveTowards(target_location, 1);
 
-                                if (dispatch.CurrentLocation.Equals(target_location)) {
-                                    if (recipChain.Count > 0 && Settings.UseChainOfCommand) {
-                                        recipChain.RemoveAt(0);
-                                        if (recipChain.Count > 0) {
-                                            Location recipTest = Scenario.GetUnitLocation(recipChain[0]);
-                                            while (!recipTest.IsPresent()) {
-                                                // Route around any intervening HQs that may have disappeared
-                                                recipChain.RemoveAt(0);
-                                                if (recipChain.Count > 0) {
-                                                    recipTest = Scenario.GetUnitLocation(recipChain[0]);
-                                                } else {
-                                                    recipTest = recip_location;
-                                                    break;
+                                    if (dispatch.CurrentLocation.Equals(target_location)) {
+                                        if (recipChain.Count > 0 && Settings.UseChainOfCommand) {
+                                            recipChain.RemoveAt(0);
+                                            if (recipChain.Count > 0) {
+                                                Location recipTest = Scenario.GetUnitLocation(recipChain[0]);
+                                                while (!recipTest.IsPresent()) {
+                                                    // Route around any intervening HQs that may have disappeared
+                                                    recipChain.RemoveAt(0);
+                                                    if (recipChain.Count > 0) {
+                                                        recipTest = Scenario.GetUnitLocation(recipChain[0]);
+                                                    } else {
+                                                        recipTest = recip_location;
+                                                        break;
+                                                    }
                                                 }
+                                                target_location = recipTest;
+                                            } else {
+                                                target_location = recip_location;
                                             }
-                                            target_location = recipTest;
+                                            if (dispatch.CurrentLocation.Equals(recip_location)) {
+                                                recipientReached = true;
+                                                break;
+                                            }
                                         } else {
-                                            target_location = recip_location;
-                                        }
-                                        if (dispatch.CurrentLocation.Equals(recip_location)) {
+                                            // we've arrived
                                             recipientReached = true;
                                             break;
                                         }
                                     } else {
-                                        // we've arrived
-                                        recipientReached = true;
-                                        break;
-                                    }
-                                } else {
-                                    if (Settings.InterdictionChance > 0) {
-                                        if (Scenario.InEnemyZOC(dispatch.CurrentLocation)) {
-                                            chance = _rnd.Next(1, 100);
-                                            if (chance <= Settings.InterdictionChance) {
-                                                // Dispatch was interdicted!
-                                                dispatchesToRemove.Add(dispatch);
-                                                break;
+                                        if (Settings.InterdictionChance > 0) {
+                                            if (Scenario.InEnemyZOC(dispatch.CurrentLocation)) {
+                                                chance = _rnd.Next(1, 100);
+                                                if (chance <= Settings.InterdictionChance) {
+                                                    // Dispatch was interdicted!
+                                                    dispatchesToRemove.Add(dispatch);
+                                                    break;
+                                                }
                                             }
+                                        }
+                                    }
+                                }
+                            } else {
+                                // Dispatch is delayed, but may still be interdicted
+                                if (Settings.InterdictionChance > 0) {
+                                    if (Scenario.InEnemyZOC(dispatch.CurrentLocation)) {
+                                        chance = _rnd.Next(1, 100);
+                                        if (chance <= Settings.InterdictionChance) {
+                                            // Dispatch was interdicted!
+                                            dispatchesToRemove.Add(dispatch);
+                                            break;
                                         }
                                     }
                                 }

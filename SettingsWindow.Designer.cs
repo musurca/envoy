@@ -51,12 +51,15 @@
             this.tipInterdiction = new System.Windows.Forms.ToolTip(this.components);
             this.label8 = new System.Windows.Forms.Label();
             this.armyBox = new System.Windows.Forms.ComboBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.numChanceDispatchDelay = new System.Windows.Forms.NumericUpDown();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numInterdictionChance)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numChanceDispatchLost)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numDispatchesPerLeader)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMinDispatchDelay)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numDispatchSpeed)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numChanceDispatchDelay)).BeginInit();
             this.SuspendLayout();
             // 
             // comboPreset
@@ -74,6 +77,8 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.label9);
+            this.groupBox1.Controls.Add(this.numChanceDispatchDelay);
             this.groupBox1.Controls.Add(this.btnSaveAsPreset);
             this.groupBox1.Controls.Add(this.numInterdictionChance);
             this.groupBox1.Controls.Add(this.label6);
@@ -91,13 +96,13 @@
             this.groupBox1.Controls.Add(this.numDispatchSpeed);
             this.groupBox1.Location = new System.Drawing.Point(13, 38);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(338, 254);
+            this.groupBox1.Size = new System.Drawing.Size(338, 287);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             // 
             // numInterdictionChance
             // 
-            this.numInterdictionChance.Location = new System.Drawing.Point(230, 222);
+            this.numInterdictionChance.Location = new System.Drawing.Point(230, 249);
             this.numInterdictionChance.Name = "numInterdictionChance";
             this.numInterdictionChance.Size = new System.Drawing.Size(46, 20);
             this.numInterdictionChance.TabIndex = 13;
@@ -110,7 +115,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(17, 224);
+            this.label7.Location = new System.Drawing.Point(17, 251);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(188, 13);
             this.label7.TabIndex = 12;
@@ -133,7 +138,7 @@
             // 
             // numChanceDispatchLost
             // 
-            this.numChanceDispatchLost.Location = new System.Drawing.Point(230, 188);
+            this.numChanceDispatchLost.Location = new System.Drawing.Point(230, 217);
             this.numChanceDispatchLost.Name = "numChanceDispatchLost";
             this.numChanceDispatchLost.Size = new System.Drawing.Size(46, 20);
             this.numChanceDispatchLost.TabIndex = 9;
@@ -146,7 +151,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(46, 190);
+            this.label5.Location = new System.Drawing.Point(46, 219);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(159, 13);
             this.label5.TabIndex = 8;
@@ -230,7 +235,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(61, 127);
+            this.label1.Location = new System.Drawing.Point(61, 126);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(144, 13);
             this.label1.TabIndex = 1;
@@ -240,7 +245,7 @@
             // 
             // numDispatchSpeed
             // 
-            this.numDispatchSpeed.Location = new System.Drawing.Point(230, 125);
+            this.numDispatchSpeed.Location = new System.Drawing.Point(230, 124);
             this.numDispatchSpeed.Maximum = new decimal(new int[] {
             500,
             0,
@@ -262,7 +267,7 @@
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(276, 308);
+            this.btnSave.Location = new System.Drawing.Point(276, 337);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(75, 23);
             this.btnSave.TabIndex = 2;
@@ -273,7 +278,7 @@
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(12, 308);
+            this.btnCancel.Location = new System.Drawing.Point(12, 337);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 3;
@@ -322,13 +327,36 @@
             this.armyBox.Size = new System.Drawing.Size(218, 21);
             this.armyBox.TabIndex = 14;
             // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(43, 188);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(160, 13);
+            this.label9.TabIndex = 15;
+            this.label9.Text = "Chance of further delay (%/turn):";
+            this.tipInterdiction.SetToolTip(this.label9, "Every turn, there is a chance that the dispatch will\r\nbe delayed for one more tur" +
+        "n. Set to 0 to disable.");
+            // 
+            // numChanceDispatchDelay
+            // 
+            this.numChanceDispatchDelay.Location = new System.Drawing.Point(230, 186);
+            this.numChanceDispatchDelay.Name = "numChanceDispatchDelay";
+            this.numChanceDispatchDelay.Size = new System.Drawing.Size(46, 20);
+            this.numChanceDispatchDelay.TabIndex = 14;
+            this.numChanceDispatchDelay.Value = new decimal(new int[] {
+            8,
+            0,
+            0,
+            0});
+            // 
             // SettingsWindow
             // 
             this.AcceptButton = this.btnSave;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(363, 343);
+            this.ClientSize = new System.Drawing.Size(363, 372);
             this.ControlBox = false;
             this.Controls.Add(this.label8);
             this.Controls.Add(this.btnCancel);
@@ -352,6 +380,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numDispatchesPerLeader)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMinDispatchDelay)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numDispatchSpeed)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numChanceDispatchDelay)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -380,5 +409,7 @@
         private System.Windows.Forms.ToolTip tipInterdiction;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.ComboBox armyBox;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.NumericUpDown numChanceDispatchDelay;
     }
 }
