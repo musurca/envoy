@@ -384,7 +384,15 @@ namespace WDS_Dispatches
                     sw.EnableCancel();
                 }
                 sw.SetDispatchState(_dispatchState);
-                sw.ShowDialog();
+                if(sw.ShowDialog() == DialogResult.OK) {
+                    if (_scenarioData.GetNation() != sw.SelectedArmy) {
+                        _dispatchState.ChangeNation(sw.SelectedArmy);
+                        _scenarioData.PopulateUI();
+
+                        SelectRecipient();
+                        SelectSender();
+                    }
+                }
             }
         }
 
@@ -427,8 +435,6 @@ namespace WDS_Dispatches
 
             editToolStripMenuItem.Enabled = false;
             settingsToolStripMenuItem1.Enabled = false;
-            advancedToolStripMenuItem.Enabled = false;
-            changeArmyToolStripMenuItem.Enabled = false;
 
             SetScenarioName("Please load a battle.");
             SetTurnLabel("(File -> Load...)");
@@ -560,14 +566,19 @@ namespace WDS_Dispatches
                 _dispatchState = DispatchState.Deserialize(battlePath, treeRecipient, treeSender);
                 if (_dispatchState.Scenario.LoadedCorrectly()) {
                     _scenarioData = _dispatchState.Scenario;
-                    _scenarioData.PopulateUI();
                     UpdateScenarioLabels();
+
+                    string currentNation = _scenarioData.GetNation();
 
                     if (_dispatchState.Settings == null) {
                         ShowSettingsWindow(true);
                     } else if (!_dispatchState.Settings.Validate()) {
                         // old settings, need update
                         ShowSettingsWindow(true);
+                    }
+
+                    if (_scenarioData.GetNation() == currentNation) {
+                        _scenarioData.PopulateUI();
                     }
 
                     if (_dispatchState.CurrentTurn < _scenarioData.GetCurrentTurn()) {
@@ -584,14 +595,6 @@ namespace WDS_Dispatches
 
                     editToolStripMenuItem.Enabled = true;
                     settingsToolStripMenuItem1.Enabled = true;
-
-                    if (_dispatchState.CurrentTurn == 1) {
-                        advancedToolStripMenuItem.Enabled = true;
-                        changeArmyToolStripMenuItem.Enabled = true;
-                    } else {
-                        advancedToolStripMenuItem.Enabled = false;
-                        changeArmyToolStripMenuItem.Enabled = false;
-                    }
 
                     if (_fileTimer != null) {
                         _fileTimer.Stop();
@@ -647,10 +650,6 @@ namespace WDS_Dispatches
                     rd_thread.Start();
                 }
             }
-
-            // Disable army changing
-            advancedToolStripMenuItem.Enabled = false;
-            changeArmyToolStripMenuItem.Enabled = false;
         }
 
         private void TimerElapsed(object sender, ElapsedEventArgs e) {
@@ -747,20 +746,6 @@ namespace WDS_Dispatches
                 System.Diagnostics.Process.Start("Envoy_Manual_v10.pdf");
             } catch(Exception) {
                 // do nothing
-            }
-        }
-
-        private void changeArmyToolStripMenuItem_Click(object sender, EventArgs e) {
-            AdvChangeArmy aca = new AdvChangeArmy(
-                _scenarioData.GetNations(), 
-                _dispatchState.Nation
-            );
-            if(aca.ShowDialog() == DialogResult.OK) {
-                _dispatchState.ChangeNation(aca.SelectedArmy);
-                _scenarioData.PopulateUI();
-
-                SelectRecipient();
-                SelectSender();
             }
         }
     }

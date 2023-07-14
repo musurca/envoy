@@ -12,8 +12,12 @@ namespace WDS_Dispatches
 {
     public partial class SettingsWindow : Form
     {
+        public string SelectedArmy { get; set; }
+
         private DispatchState _ds;
         private ScenarioSettings _settings;
+        private List<string> _nameToArmyId;
+
         public SettingsWindow()
         {
             InitializeComponent();
@@ -27,9 +31,39 @@ namespace WDS_Dispatches
             comboPreset.Items.AddRange(preset_names);
         }
 
+        private void PopulateArmyBox(List<string> armies, string currentArmy) {
+            _nameToArmyId = new List<string>();
+
+            armyBox.BeginUpdate();
+            armyBox.Items.Clear();
+            
+            // Replace underscores with whitespace to make army ID more readable
+            foreach (string army in armies) {
+                _nameToArmyId.Add(army);
+
+                armyBox.Items.Add(army.Replace('_', ' '));
+            }
+            
+            int selectedIndex = _nameToArmyId.IndexOf(currentArmy);
+            armyBox.SelectedIndex = selectedIndex;
+            armyBox.EndUpdate();
+        }
+
         public void SetDispatchState(DispatchState ds) {
             _ds = ds;
-            if(ds.Settings != null) {
+
+            PopulateArmyBox(
+                _ds.Scenario.GetNations(), 
+                _ds.Scenario.GetNation()
+            );
+
+            if(ds.CurrentTurn > 1) {
+                armyBox.Enabled = false;
+            } else {
+                armyBox.Enabled = true;
+            }
+            
+            if (ds.Settings != null) {
                 _settings = ds.Settings;
                 // update settings version no matter what
                 _settings.SettingsVersion = ScenarioSettings.CURRENT_SETTINGS_VERSION;
@@ -78,7 +112,11 @@ namespace WDS_Dispatches
             SaveCurrentSettingsTo(_settings);
             _ds.Settings = _settings;
             _ds.Serialize();
-            this.Close();
+
+            // Translate the readable army name to its underlying army ID
+            SelectedArmy = _nameToArmyId[armyBox.SelectedIndex];
+
+            this.DialogResult = DialogResult.OK;
         }
 
         private void comboPreset_SelectedIndexChanged(object sender, EventArgs e) {
@@ -100,6 +138,10 @@ namespace WDS_Dispatches
                 SetPresetItems();
             }
             epn.Dispose();
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e) {
+            this.DialogResult = DialogResult.Cancel;
         }
     }
 }

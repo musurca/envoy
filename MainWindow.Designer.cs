@@ -85,8 +85,6 @@ namespace WDS_Dispatches
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.howToUseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.labelTurnCount = new System.Windows.Forms.Label();
-            this.advancedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.changeArmyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl1.SuspendLayout();
             this.tabRecipient.SuspendLayout();
             this.tabSender.SuspendLayout();
@@ -337,7 +335,6 @@ namespace WDS_Dispatches
             this.fileToolStripMenuItem,
             this.editToolStripMenuItem,
             this.settingsToolStripMenuItem1,
-            this.advancedToolStripMenuItem,
             this.helpToolStripMenuItem});
             this.menuMain.Location = new System.Drawing.Point(0, 0);
             this.menuMain.Name = "menuMain";
@@ -359,19 +356,19 @@ namespace WDS_Dispatches
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
             this.loadToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.L)));
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
             this.loadToolStripMenuItem.Text = "Load...";
             this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(146, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -445,14 +442,14 @@ namespace WDS_Dispatches
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.aboutToolStripMenuItem.Text = "About...";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // howToUseToolStripMenuItem
             // 
             this.howToUseToolStripMenuItem.Name = "howToUseToolStripMenuItem";
-            this.howToUseToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+            this.howToUseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.howToUseToolStripMenuItem.Text = "Manual...";
             this.howToUseToolStripMenuItem.Click += new System.EventHandler(this.howToUseToolStripMenuItem_Click);
             // 
@@ -467,23 +464,6 @@ namespace WDS_Dispatches
             this.labelTurnCount.TabIndex = 12;
             this.labelTurnCount.Text = "(File -> Load...)";
             this.labelTurnCount.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // advancedToolStripMenuItem
-            // 
-            this.advancedToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.changeArmyToolStripMenuItem});
-            this.advancedToolStripMenuItem.Enabled = false;
-            this.advancedToolStripMenuItem.Name = "advancedToolStripMenuItem";
-            this.advancedToolStripMenuItem.Size = new System.Drawing.Size(72, 20);
-            this.advancedToolStripMenuItem.Text = "Advanced";
-            // 
-            // changeArmyToolStripMenuItem
-            // 
-            this.changeArmyToolStripMenuItem.Enabled = false;
-            this.changeArmyToolStripMenuItem.Name = "changeArmyToolStripMenuItem";
-            this.changeArmyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.changeArmyToolStripMenuItem.Text = "Change army...";
-            this.changeArmyToolStripMenuItem.Click += new System.EventHandler(this.changeArmyToolStripMenuItem_Click);
             // 
             // MainWindow
             // 
@@ -565,8 +545,6 @@ namespace WDS_Dispatches
         private System.Windows.Forms.ToolStripMenuItem cutToolStripMenuItem;
         private System.Windows.Forms.RichTextBox boxMessageHistory;
         private ContextMenuStrip messageBodyContextMenu;
-        private ToolStripMenuItem advancedToolStripMenuItem;
-        private ToolStripMenuItem changeArmyToolStripMenuItem;
     }
 }
 

@@ -122,6 +122,11 @@ namespace WDS_Dispatches
                 DispatchesReceived.Clear();
                 NumDispatchesSent.Clear();
 
+                for(int i = 1; i <= CurrentTurn; i++) {
+                    NumDispatchesSent.Add(i, new Dictionary<string, int>());
+                    DispatchesReceived.Add(i, new List<Dispatch>());
+                }
+
                 Nation = new_nation;
                 Scenario.SetNation(Nation);
             }

@@ -49,6 +49,8 @@
             this.label6 = new System.Windows.Forms.Label();
             this.btnSaveAsPreset = new System.Windows.Forms.Button();
             this.tipInterdiction = new System.Windows.Forms.ToolTip(this.components);
+            this.label8 = new System.Windows.Forms.Label();
+            this.armyBox = new System.Windows.Forms.ComboBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numInterdictionChance)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numChanceDispatchLost)).BeginInit();
@@ -64,7 +66,7 @@
             this.comboPreset.Items.AddRange(new object[] {
             "Pre-Modern",
             "Modern"});
-            this.comboPreset.Location = new System.Drawing.Point(218, 14);
+            this.comboPreset.Location = new System.Drawing.Point(205, 20);
             this.comboPreset.Name = "comboPreset";
             this.comboPreset.Size = new System.Drawing.Size(121, 21);
             this.comboPreset.TabIndex = 0;
@@ -72,11 +74,14 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.btnSaveAsPreset);
             this.groupBox1.Controls.Add(this.numInterdictionChance);
+            this.groupBox1.Controls.Add(this.label6);
             this.groupBox1.Controls.Add(this.label7);
             this.groupBox1.Controls.Add(this.checkUseChainOfCommand);
             this.groupBox1.Controls.Add(this.numChanceDispatchLost);
             this.groupBox1.Controls.Add(this.label5);
+            this.groupBox1.Controls.Add(this.comboPreset);
             this.groupBox1.Controls.Add(this.numDispatchesPerLeader);
             this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.label3);
@@ -84,15 +89,15 @@
             this.groupBox1.Controls.Add(this.numMinDispatchDelay);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.numDispatchSpeed);
-            this.groupBox1.Location = new System.Drawing.Point(13, 40);
+            this.groupBox1.Location = new System.Drawing.Point(13, 38);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(326, 218);
+            this.groupBox1.Size = new System.Drawing.Size(338, 254);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             // 
             // numInterdictionChance
             // 
-            this.numInterdictionChance.Location = new System.Drawing.Point(228, 180);
+            this.numInterdictionChance.Location = new System.Drawing.Point(230, 222);
             this.numInterdictionChance.Name = "numInterdictionChance";
             this.numInterdictionChance.Size = new System.Drawing.Size(46, 20);
             this.numInterdictionChance.TabIndex = 13;
@@ -105,7 +110,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(15, 182);
+            this.label7.Location = new System.Drawing.Point(17, 224);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(188, 13);
             this.label7.TabIndex = 12;
@@ -117,7 +122,7 @@
             this.checkUseChainOfCommand.AutoSize = true;
             this.checkUseChainOfCommand.Checked = true;
             this.checkUseChainOfCommand.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkUseChainOfCommand.Location = new System.Drawing.Point(33, 19);
+            this.checkUseChainOfCommand.Location = new System.Drawing.Point(35, 61);
             this.checkUseChainOfCommand.Name = "checkUseChainOfCommand";
             this.checkUseChainOfCommand.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.checkUseChainOfCommand.Size = new System.Drawing.Size(222, 17);
@@ -128,7 +133,7 @@
             // 
             // numChanceDispatchLost
             // 
-            this.numChanceDispatchLost.Location = new System.Drawing.Point(228, 146);
+            this.numChanceDispatchLost.Location = new System.Drawing.Point(230, 188);
             this.numChanceDispatchLost.Name = "numChanceDispatchLost";
             this.numChanceDispatchLost.Size = new System.Drawing.Size(46, 20);
             this.numChanceDispatchLost.TabIndex = 9;
@@ -141,7 +146,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(44, 148);
+            this.label5.Location = new System.Drawing.Point(46, 190);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(159, 13);
             this.label5.TabIndex = 8;
@@ -151,7 +156,7 @@
             // 
             // numDispatchesPerLeader
             // 
-            this.numDispatchesPerLeader.Location = new System.Drawing.Point(228, 51);
+            this.numDispatchesPerLeader.Location = new System.Drawing.Point(230, 93);
             this.numDispatchesPerLeader.Maximum = new decimal(new int[] {
             50,
             0,
@@ -174,7 +179,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(51, 53);
+            this.label4.Location = new System.Drawing.Point(53, 95);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(152, 13);
             this.label4.TabIndex = 5;
@@ -192,7 +197,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(49, 115);
+            this.label2.Location = new System.Drawing.Point(51, 157);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(154, 13);
             this.label2.TabIndex = 3;
@@ -202,7 +207,7 @@
             // 
             // numMinDispatchDelay
             // 
-            this.numMinDispatchDelay.Location = new System.Drawing.Point(228, 113);
+            this.numMinDispatchDelay.Location = new System.Drawing.Point(230, 155);
             this.numMinDispatchDelay.Maximum = new decimal(new int[] {
             50,
             0,
@@ -225,7 +230,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(59, 85);
+            this.label1.Location = new System.Drawing.Point(61, 127);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(144, 13);
             this.label1.TabIndex = 1;
@@ -235,7 +240,7 @@
             // 
             // numDispatchSpeed
             // 
-            this.numDispatchSpeed.Location = new System.Drawing.Point(228, 83);
+            this.numDispatchSpeed.Location = new System.Drawing.Point(230, 125);
             this.numDispatchSpeed.Maximum = new decimal(new int[] {
             500,
             0,
@@ -257,7 +262,7 @@
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(264, 264);
+            this.btnSave.Location = new System.Drawing.Point(276, 308);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(75, 23);
             this.btnSave.TabIndex = 2;
@@ -268,17 +273,18 @@
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(12, 264);
+            this.btnCancel.Location = new System.Drawing.Point(12, 308);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 3;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(151, 17);
+            this.label6.Location = new System.Drawing.Point(138, 23);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(65, 13);
             this.label6.TabIndex = 4;
@@ -286,7 +292,7 @@
             // 
             // btnSaveAsPreset
             // 
-            this.btnSaveAsPreset.Location = new System.Drawing.Point(12, 12);
+            this.btnSaveAsPreset.Location = new System.Drawing.Point(9, 18);
             this.btnSaveAsPreset.Name = "btnSaveAsPreset";
             this.btnSaveAsPreset.Size = new System.Drawing.Size(113, 23);
             this.btnSaveAsPreset.TabIndex = 5;
@@ -298,20 +304,37 @@
             // 
             this.tipInterdiction.IsBalloon = true;
             // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(14, 15);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(113, 13);
+            this.label8.TabIndex = 15;
+            this.label8.Text = "Player-controlled army:";
+            // 
+            // armyBox
+            // 
+            this.armyBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.armyBox.FormattingEnabled = true;
+            this.armyBox.Location = new System.Drawing.Point(133, 12);
+            this.armyBox.Name = "armyBox";
+            this.armyBox.Size = new System.Drawing.Size(218, 21);
+            this.armyBox.TabIndex = 14;
+            // 
             // SettingsWindow
             // 
             this.AcceptButton = this.btnSave;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(355, 298);
+            this.ClientSize = new System.Drawing.Size(363, 343);
             this.ControlBox = false;
-            this.Controls.Add(this.btnSaveAsPreset);
-            this.Controls.Add(this.label6);
+            this.Controls.Add(this.label8);
             this.Controls.Add(this.btnCancel);
+            this.Controls.Add(this.armyBox);
             this.Controls.Add(this.btnSave);
             this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.comboPreset);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -355,5 +378,7 @@
         private System.Windows.Forms.NumericUpDown numInterdictionChance;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.ToolTip tipInterdiction;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.ComboBox armyBox;
     }
 }

@@ -5,8 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace WDS_Dispatches
-{
+namespace WDS_Dispatches {
     public class ScenarioReader {
         private string[] _lines;
         private int _index;
