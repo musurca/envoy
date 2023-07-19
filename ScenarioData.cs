@@ -1014,44 +1014,41 @@ namespace WDS_Dispatches {
 
             // find the leader on the ground, if he's in the scenario
             // otherwise use the default commander
-            int leaderIndex = 0;
             bool leaderFound = false;
             Dictionary<string, object> leaderUnit = null;
             foreach(Dictionary<string, object> unit in units) {
                 if ((string)unit["type"] == "Leader") {
-                    string leaderCode = currentCode + "." + (leaderIndex + 1);
-                    if (_unitPresent.ContainsKey(leaderCode)) {
-                        leaderFound = true;
-                        leaderUnit = unit;
-                    } else {
-                        leaderIndex++;
-                    }
-                } else {
-                    // have run out of leaders
-                    break;
-                }
-
-                leaderIndex++;
-            }
-
-            // no leaders present? find A leader
-            if (!leaderFound) {
-                foreach(Dictionary<string, object> unit in units) {
-                    if ((string)unit["type"] == "Leader") {
+                    if (
+                        unit.ContainsKey("node_name") &&
+                        unit.ContainsKey("code") &&
+                        unit.ContainsKey("message_name")
+                    ) {
                         leaderFound = true;
                         leaderUnit = unit;
                         break;
                     }
                 }
             }
+
             if (!leaderFound) {
                 // no leaders at all?? find a unit
                 foreach (Dictionary<string, object> unit in units) {
                     if ((string)unit["type"] == "Unit") {
-                        leaderUnit = unit;
-                        break;
+                        if (
+                            unit.ContainsKey("node_name") &&
+                            unit.ContainsKey("code") &&
+                            unit.ContainsKey("message_name")
+                        ) {
+                            leaderFound = true;
+                            leaderUnit = unit;
+                            break;
+                        }
                     }
                 }
+            }
+
+            if(!leaderFound) {
+                return;
             }
 
             // show it on the list
@@ -1109,44 +1106,42 @@ namespace WDS_Dispatches {
                 // find the leader on the ground, if he's in the scenario
                 // otherwise use the default commander
                 bool leaderFound = false;
-                int leaderIndex = 0;
                 Dictionary<string, object> leaderUnit = null;
-                while (!leaderFound && leaderIndex < units.Count()) {
-                    Dictionary<string, object> test_unit = units[leaderIndex];
+                for(int j = 0; j < units.Count(); j++) {
+                    Dictionary<string, object> test_unit = units[j];
                     if ((string)test_unit["type"] == "Leader") {
-                        string leaderCode = codePrefix + "." + (leaderIndex + 1);
-                        if (_unitPresent.ContainsKey(leaderCode)) {
-                            leaderFound = true;
-                            leaderUnit = test_unit;
-                        } else {
-                            leaderIndex++;
-                        }
-                    } else {
-                        // have run out of leaders
-                        break;
-                    }
-                }
-
-                // no leaders present? find any leader
-                if (!leaderFound) {
-                    for (int j = 0; j < units.Count(); j++) {
-                        Dictionary<string, object> test_unit = units[j];
-                        if ((string)test_unit["type"] == "Leader") {
+                        if (
+                            test_unit.ContainsKey("node_name") && 
+                            test_unit.ContainsKey("code") && 
+                            test_unit.ContainsKey("message_name")
+                        ) {
                             leaderFound = true;
                             leaderUnit = test_unit;
                             break;
                         }
                     }
                 }
+
                 if (!leaderFound) {
                     // no leaders at all?? find a unit
                     for (int j = 0; j < units.Count(); j++) {
                         Dictionary<string, object> test_unit = units[j];
                         if ((string)test_unit["type"] == "Unit") {
-                            leaderUnit = test_unit;
-                            break;
+                            if (
+                            test_unit.ContainsKey("node_name") &&
+                            test_unit.ContainsKey("code") &&
+                            test_unit.ContainsKey("message_name")
+                            ) {
+                                leaderFound = true;
+                                leaderUnit = test_unit;
+                                break;
+                            }
                         }
                     }
+                }
+
+                if(!leaderFound) {
+                    continue;
                 }
 
                 string nodeName = (string)leaderUnit["node_name"];

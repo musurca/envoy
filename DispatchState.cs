@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.Mail;
-using System.Security.Policy;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 
@@ -364,7 +360,7 @@ namespace WDS_Dispatches
                     if (sender_location.IsPresent()) {
                         dispatchesToAdd.Add(
                             new Dispatch(
-                                "aide de camp",
+                                "Aide-de-camp",
                                 dispatch.Sender,
                                 "The following order could not be delivered to " +
                                     dispatch.Recipient +

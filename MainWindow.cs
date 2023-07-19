@@ -422,13 +422,17 @@ namespace WDS_Dispatches
             SetTurnLabel("Turn " + _scenarioData.GetCurrentTurn() + " of " + _scenarioData.GetMaxTurns());
         }
 
-        private void ResetWindowState() {
+        private void ClearOOBTree() {
             treeRecipient.BeginUpdate();
             treeRecipient.Nodes.Clear();
             treeRecipient.EndUpdate();
             treeSender.BeginUpdate();
             treeSender.Nodes.Clear();
             treeSender.EndUpdate();
+        }
+
+        private void ResetWindowState() {
+            ClearOOBTree();
             
             SelectRecipient();
             SelectSender();
@@ -566,6 +570,7 @@ namespace WDS_Dispatches
                 _dispatchState = DispatchState.Deserialize(battlePath, treeRecipient, treeSender);
                 if (_dispatchState.Scenario.LoadedCorrectly()) {
                     _scenarioData = _dispatchState.Scenario;
+                    ClearOOBTree();
                     UpdateScenarioLabels();
 
                     string currentNation = _scenarioData.GetNation();
