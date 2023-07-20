@@ -14,7 +14,7 @@ namespace WDS_Dispatches {
         public static int CURRENT_SETTINGS_VERSION = 2;
 
         [JsonIgnore]
-        public static string ENVOY_VERSION_NUMBER = "1.04b";
+        public static string ENVOY_VERSION_NUMBER = "1.04";
 
         public int SettingsVersion { get; set; }
         public int DispatchesPerLeader { get; set; }
