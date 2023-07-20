@@ -21,7 +21,7 @@ A full [manual](https://github.com/musurca/envoy/blob/master/manual/Envoy_Manual
 
 ## Compatibility
 
-**Envoy** is currently compatible with the WDS Musket & Pike, Napoleonic, Early American Wars, and Civil War Battles series. The Panzer & Modern Campaigns series are not currently supported. 
+**Envoy** is currently compatible with the WDS Musket & Pike, Napoleonic, and Civil War Battles series. The Panzer & Modern Campaigns series are not currently supported. 
 
 PBEM games are supported, as long as they are unencrypted. (In the WDS game, *Settings -> PBEM Encryption* should be unchecked.)
 
