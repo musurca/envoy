@@ -1,6 +1,6 @@
 # Envoy
 ![screenshot](https://i.imgur.com/8Pmolh3.jpg)
-**[DOWNLOAD LATEST RELEASE (v1.03)](https://github.com/musurca/envoy/releases/download/1.03/Envoy.v1.03.zip)**
+**[DOWNLOAD LATEST RELEASE (v1.04)](https://github.com/musurca/envoy/releases/download/1.04/Envoy.v1.04.zip)**
 
 **Envoy** is a utility for [Wargame Design Studio](http://www.wargameds.com)’s series of historical wargames that
 simulates command and control with order delay. Often, decisive battles turned not on
@@ -21,22 +21,28 @@ A full [manual](https://github.com/musurca/envoy/blob/master/manual/Envoy_Manual
 
 ## Compatibility
 
-**Envoy** is currently compatible with the WDS Napoleonic, Musket & Pike, and Civil War Battles series. Support for the Panzer & Modern Campaigns series may be forthcoming.
+**Envoy** is currently compatible with the WDS Musket & Pike, Napoleonic, Early American Wars, and Civil War Battles series. The Panzer & Modern Campaigns series are not currently supported. 
 
-PBEM games are supported, as long as they are unencrypted. (In the WDS game,
-*Settings -> PBEM Encryption* should be unchecked.)
+PBEM games are supported, as long as they are unencrypted. (In the WDS game, *Settings -> PBEM Encryption* should be unchecked.)
 
 ## Version History
 
+v1.04 (7/20/2023)
+- added: OOB color-coding to indicate presence of units
+- added: chance for additional delay to dispatches
+- added: can change player-controlled army if not detected correctly
+- fixed: various crashes related to OOB parsing in Civil War Battles
+- fixed: parts of OOBs not being displayed
+
 v1.03 (6/28/2023)
-- fixed bug with parsing some OOBs
+- fixed: bug with parsing some OOBs
 
 v1.02 (6/26/2023)
-- fixed bug with Civil War Battles scenarios
+- fixed: bug with Civil War Battles scenarios
 
 v1.01 (6/26/2023)
-- fixed bug with off-map message recipients in a message chain
-- fixed bug with enemy ZOC evaluation with off-map units
+- fixed: bug with off-map message recipients in a message chain
+- fixed: bug with enemy ZOC evaluation with off-map units
 
 v1.0 (6/25/2023)
 - initial release
