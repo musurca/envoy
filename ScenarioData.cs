@@ -49,22 +49,25 @@ namespace WDS_Dispatches {
         private Dictionary<string, bool> _unitPresent;
         private System.Windows.Forms.TreeView _tvRecip;
         private System.Windows.Forms.TreeView _tvSender;
-        private bool    _loadedCorrectly;
-        private string  _scenarioName;
-        private int     _armyPlayingIndex;
-        private int     _armyPlayingIndexOriginal;
-        private int     _currentTurn;
-        private string  _currentDay;
-        private string  _currentTime;
-        private int     _maxTurns;
-        private string  _filename;
-        private string  _oobFilename;
-        private string  _shortFilename;
-        private string  _mapFilename;
-        private string  _pdtFilename;
-        private bool    _hasUpdated;
-        private int     _scenarioEra;
-        private bool    _isPBEM;
+        private bool _loadedCorrectly;
+        private string _scenarioName;
+        private int _armyPlayingIndex;
+        private int _armyPlayingIndexOriginal;
+        private int _currentTurn;
+        private string _currentDay;
+        private string _currentTime;
+        private int _maxTurns;
+        private string _filename;
+        private string _oobFilename;
+        private string _shortFilename;
+        private string _mapFilename;
+        private string _pdtFilename;
+        private bool _hasUpdated;
+        private int _scenarioEra;
+        private bool _isPBEM;
+
+        public int MapWidth {get; set;}
+        public int MapHeight { get; set;}
 
         public bool LoadedCorrectly() {
             return _loadedCorrectly;
@@ -572,6 +575,9 @@ namespace WDS_Dispatches {
                     parsed_correctly = false;
                 }
             }
+
+            MapWidth = width;
+            MapHeight = height;
 
             if(!parsed_correctly) {
                 return false;

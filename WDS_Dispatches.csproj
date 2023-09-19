@@ -89,6 +89,12 @@
     <Compile Include="About.Designer.cs">
       <DependentUpon>About.cs</DependentUpon>
     </Compile>
+    <Compile Include="CustomDispatchNode.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CustomDispatchNode.Designer.cs">
+      <DependentUpon>CustomDispatchNode.cs</DependentUpon>
+    </Compile>
     <Compile Include="DispatchState.cs" />
     <Compile Include="EnterPresetName.cs">
       <SubType>Form</SubType>
@@ -121,6 +127,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="About.resx">
       <DependentUpon>About.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CustomDispatchNode.resx">
+      <DependentUpon>CustomDispatchNode.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="EnterPresetName.resx">
       <DependentUpon>EnterPresetName.cs</DependentUpon>

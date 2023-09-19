@@ -85,6 +85,8 @@ namespace WDS_Dispatches
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.howToUseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.labelTurnCount = new System.Windows.Forms.Label();
+            this.btnCustomRecip = new System.Windows.Forms.Button();
+            this.btnCustomSender = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabRecipient.SuspendLayout();
             this.tabSender.SuspendLayout();
@@ -96,15 +98,20 @@ namespace WDS_Dispatches
             // 
             // treeRecipient
             // 
+            this.treeRecipient.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.treeRecipient.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.treeRecipient.Location = new System.Drawing.Point(6, 6);
             this.treeRecipient.Name = "treeRecipient";
-            this.treeRecipient.Size = new System.Drawing.Size(335, 308);
-            this.treeRecipient.TabIndex = 0;
+            this.treeRecipient.Size = new System.Drawing.Size(335, 325);
+            this.treeRecipient.TabIndex = 1;
             this.treeRecipient.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeRecipient_AfterSelect);
             // 
             // messageBody
             // 
+            this.messageBody.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.messageBody.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.messageBody.ContextMenuStrip = this.messageBodyContextMenu;
             this.messageBody.DetectUrls = false;
@@ -112,8 +119,8 @@ namespace WDS_Dispatches
             this.messageBody.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.messageBody.Location = new System.Drawing.Point(9, 84);
             this.messageBody.Name = "messageBody";
-            this.messageBody.Size = new System.Drawing.Size(473, 201);
-            this.messageBody.TabIndex = 1;
+            this.messageBody.Size = new System.Drawing.Size(487, 247);
+            this.messageBody.TabIndex = 2;
             this.messageBody.Text = "";
             // 
             // messageBodyContextMenu
@@ -151,11 +158,12 @@ namespace WDS_Dispatches
             // 
             // barDispatchesLeft
             // 
-            this.barDispatchesLeft.Location = new System.Drawing.Point(385, 9);
+            this.barDispatchesLeft.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.barDispatchesLeft.Location = new System.Drawing.Point(381, 9);
             this.barDispatchesLeft.MarqueeAnimationSpeed = 1;
             this.barDispatchesLeft.Maximum = 5;
             this.barDispatchesLeft.Name = "barDispatchesLeft";
-            this.barDispatchesLeft.Size = new System.Drawing.Size(100, 16);
+            this.barDispatchesLeft.Size = new System.Drawing.Size(118, 16);
             this.barDispatchesLeft.Step = 1;
             this.barDispatchesLeft.TabIndex = 5;
             // 
@@ -171,11 +179,12 @@ namespace WDS_Dispatches
             // 
             // btnSend
             // 
+            this.btnSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSend.Enabled = false;
-            this.btnSend.Location = new System.Drawing.Point(410, 291);
+            this.btnSend.Location = new System.Drawing.Point(424, 337);
             this.btnSend.Name = "btnSend";
             this.btnSend.Size = new System.Drawing.Size(75, 23);
-            this.btnSend.TabIndex = 8;
+            this.btnSend.TabIndex = 3;
             this.btnSend.Text = "Send";
             this.btnSend.UseVisualStyleBackColor = true;
             this.btnSend.Click += new System.EventHandler(this.btnSend_Click);
@@ -191,53 +200,62 @@ namespace WDS_Dispatches
             // 
             // tabControl1
             // 
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.tabControl1.Controls.Add(this.tabRecipient);
             this.tabControl1.Controls.Add(this.tabSender);
             this.tabControl1.Location = new System.Drawing.Point(12, 70);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(355, 346);
+            this.tabControl1.Size = new System.Drawing.Size(355, 392);
             this.tabControl1.TabIndex = 8;
             // 
             // tabRecipient
             // 
             this.tabRecipient.BackColor = System.Drawing.Color.Gainsboro;
+            this.tabRecipient.Controls.Add(this.btnCustomRecip);
             this.tabRecipient.Controls.Add(this.treeRecipient);
             this.tabRecipient.Location = new System.Drawing.Point(4, 22);
             this.tabRecipient.Name = "tabRecipient";
             this.tabRecipient.Padding = new System.Windows.Forms.Padding(3);
-            this.tabRecipient.Size = new System.Drawing.Size(347, 320);
+            this.tabRecipient.Size = new System.Drawing.Size(347, 366);
             this.tabRecipient.TabIndex = 0;
             this.tabRecipient.Text = "To";
             // 
             // tabSender
             // 
             this.tabSender.BackColor = System.Drawing.Color.Gainsboro;
+            this.tabSender.Controls.Add(this.btnCustomSender);
             this.tabSender.Controls.Add(this.treeSender);
             this.tabSender.Location = new System.Drawing.Point(4, 22);
             this.tabSender.Name = "tabSender";
             this.tabSender.Padding = new System.Windows.Forms.Padding(3);
-            this.tabSender.Size = new System.Drawing.Size(347, 320);
+            this.tabSender.Size = new System.Drawing.Size(347, 366);
             this.tabSender.TabIndex = 1;
             this.tabSender.Text = "From";
             // 
             // treeSender
             // 
+            this.treeSender.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.treeSender.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.treeSender.Location = new System.Drawing.Point(6, 6);
             this.treeSender.Name = "treeSender";
-            this.treeSender.Size = new System.Drawing.Size(335, 308);
+            this.treeSender.Size = new System.Drawing.Size(335, 325);
             this.treeSender.TabIndex = 1;
             this.treeSender.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeSender_AfterSelect);
             // 
             // tabControl2
             // 
+            this.tabControl2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl2.Controls.Add(this.tabSendDispatch);
             this.tabControl2.Controls.Add(this.tabMessageHistory);
             this.tabControl2.Location = new System.Drawing.Point(373, 70);
             this.tabControl2.Name = "tabControl2";
             this.tabControl2.SelectedIndex = 0;
-            this.tabControl2.Size = new System.Drawing.Size(499, 346);
+            this.tabControl2.Size = new System.Drawing.Size(513, 392);
             this.tabControl2.TabIndex = 9;
             // 
             // tabSendDispatch
@@ -256,14 +274,15 @@ namespace WDS_Dispatches
             this.tabSendDispatch.Location = new System.Drawing.Point(4, 22);
             this.tabSendDispatch.Name = "tabSendDispatch";
             this.tabSendDispatch.Padding = new System.Windows.Forms.Padding(3);
-            this.tabSendDispatch.Size = new System.Drawing.Size(491, 320);
+            this.tabSendDispatch.Size = new System.Drawing.Size(505, 366);
             this.tabSendDispatch.TabIndex = 0;
             this.tabSendDispatch.Text = "Send Dispatch";
             // 
             // labelDispatchETA
             // 
+            this.labelDispatchETA.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.labelDispatchETA.AutoSize = true;
-            this.labelDispatchETA.Location = new System.Drawing.Point(52, 296);
+            this.labelDispatchETA.Location = new System.Drawing.Point(52, 342);
             this.labelDispatchETA.Name = "labelDispatchETA";
             this.labelDispatchETA.Size = new System.Drawing.Size(39, 13);
             this.labelDispatchETA.TabIndex = 13;
@@ -271,9 +290,10 @@ namespace WDS_Dispatches
             // 
             // label4
             // 
+            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Underline, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(6, 296);
+            this.label4.Location = new System.Drawing.Point(6, 342);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(31, 13);
             this.label4.TabIndex = 12;
@@ -315,17 +335,20 @@ namespace WDS_Dispatches
             this.tabMessageHistory.Location = new System.Drawing.Point(4, 22);
             this.tabMessageHistory.Name = "tabMessageHistory";
             this.tabMessageHistory.Padding = new System.Windows.Forms.Padding(3);
-            this.tabMessageHistory.Size = new System.Drawing.Size(491, 320);
+            this.tabMessageHistory.Size = new System.Drawing.Size(505, 366);
             this.tabMessageHistory.TabIndex = 1;
             this.tabMessageHistory.Text = "Message History";
             // 
             // boxMessageHistory
             // 
+            this.boxMessageHistory.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.boxMessageHistory.DetectUrls = false;
             this.boxMessageHistory.Location = new System.Drawing.Point(6, 6);
             this.boxMessageHistory.Name = "boxMessageHistory";
             this.boxMessageHistory.ReadOnly = true;
-            this.boxMessageHistory.Size = new System.Drawing.Size(479, 308);
+            this.boxMessageHistory.Size = new System.Drawing.Size(493, 354);
             this.boxMessageHistory.TabIndex = 0;
             this.boxMessageHistory.Text = "";
             // 
@@ -338,7 +361,7 @@ namespace WDS_Dispatches
             this.helpToolStripMenuItem});
             this.menuMain.Location = new System.Drawing.Point(0, 0);
             this.menuMain.Name = "menuMain";
-            this.menuMain.Size = new System.Drawing.Size(884, 24);
+            this.menuMain.Size = new System.Drawing.Size(898, 24);
             this.menuMain.TabIndex = 11;
             this.menuMain.Text = "menuStrip1";
             // 
@@ -350,25 +373,25 @@ namespace WDS_Dispatches
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
-            this.fileToolStripMenuItem.Text = "File";
+            this.fileToolStripMenuItem.Text = "&File";
             // 
             // loadToolStripMenuItem
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
             this.loadToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.L)));
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
-            this.loadToolStripMenuItem.Text = "Load...";
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadToolStripMenuItem.Text = "&Load...";
             this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(146, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -383,7 +406,7 @@ namespace WDS_Dispatches
             this.editToolStripMenuItem.Enabled = false;
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
-            this.editToolStripMenuItem.Text = "Edit";
+            this.editToolStripMenuItem.Text = "&Edit";
             // 
             // cutToolStripMenuItem
             // 
@@ -419,7 +442,7 @@ namespace WDS_Dispatches
             this.undoLastDispatchToolStripMenuItem1.Name = "undoLastDispatchToolStripMenuItem1";
             this.undoLastDispatchToolStripMenuItem1.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z)));
             this.undoLastDispatchToolStripMenuItem1.Size = new System.Drawing.Size(217, 22);
-            this.undoLastDispatchToolStripMenuItem1.Text = "Undo Last Dispatch";
+            this.undoLastDispatchToolStripMenuItem1.Text = "&Undo Last Dispatch";
             this.undoLastDispatchToolStripMenuItem1.Click += new System.EventHandler(this.undoLastDispatchToolStripMenuItem1_Click);
             // 
             // settingsToolStripMenuItem1
@@ -427,7 +450,7 @@ namespace WDS_Dispatches
             this.settingsToolStripMenuItem1.Enabled = false;
             this.settingsToolStripMenuItem1.Name = "settingsToolStripMenuItem1";
             this.settingsToolStripMenuItem1.Size = new System.Drawing.Size(70, 20);
-            this.settingsToolStripMenuItem1.Text = "Settings...";
+            this.settingsToolStripMenuItem1.Text = "&Settings...";
             this.settingsToolStripMenuItem1.Click += new System.EventHandler(this.settingsToolStripMenuItem1_Click);
             // 
             // helpToolStripMenuItem
@@ -437,20 +460,20 @@ namespace WDS_Dispatches
             this.howToUseToolStripMenuItem});
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            this.helpToolStripMenuItem.Text = "Help";
+            this.helpToolStripMenuItem.Text = "&Help";
             // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.aboutToolStripMenuItem.Text = "About...";
+            this.aboutToolStripMenuItem.Text = "&About...";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // howToUseToolStripMenuItem
             // 
             this.howToUseToolStripMenuItem.Name = "howToUseToolStripMenuItem";
             this.howToUseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.howToUseToolStripMenuItem.Text = "Manual...";
+            this.howToUseToolStripMenuItem.Text = "&Manual...";
             this.howToUseToolStripMenuItem.Click += new System.EventHandler(this.howToUseToolStripMenuItem_Click);
             // 
             // labelTurnCount
@@ -458,18 +481,41 @@ namespace WDS_Dispatches
             this.labelTurnCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelTurnCount.AutoSize = true;
             this.labelTurnCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelTurnCount.Location = new System.Drawing.Point(774, 37);
+            this.labelTurnCount.Location = new System.Drawing.Point(788, 37);
             this.labelTurnCount.Name = "labelTurnCount";
             this.labelTurnCount.Size = new System.Drawing.Size(94, 13);
             this.labelTurnCount.TabIndex = 12;
             this.labelTurnCount.Text = "(File -> Load...)";
             this.labelTurnCount.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
+            // btnCustomRecip
+            // 
+            this.btnCustomRecip.Enabled = false;
+            this.btnCustomRecip.Location = new System.Drawing.Point(6, 337);
+            this.btnCustomRecip.Name = "btnCustomRecip";
+            this.btnCustomRecip.Size = new System.Drawing.Size(335, 23);
+            this.btnCustomRecip.TabIndex = 4;
+            this.btnCustomRecip.Text = "Custom recipient...";
+            this.btnCustomRecip.UseVisualStyleBackColor = true;
+            this.btnCustomRecip.Click += new System.EventHandler(this.btnCustomRecip_Click);
+            // 
+            // btnCustomSender
+            // 
+            this.btnCustomSender.Enabled = false;
+            this.btnCustomSender.Location = new System.Drawing.Point(6, 337);
+            this.btnCustomSender.Name = "btnCustomSender";
+            this.btnCustomSender.Size = new System.Drawing.Size(335, 23);
+            this.btnCustomSender.TabIndex = 2;
+            this.btnCustomSender.Text = "Custom sender...";
+            this.btnCustomSender.UseVisualStyleBackColor = true;
+            this.btnCustomSender.Click += new System.EventHandler(this.btnCustomSender_Click);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(884, 427);
+            this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.ClientSize = new System.Drawing.Size(898, 473);
             this.Controls.Add(this.labelTurnCount);
             this.Controls.Add(this.tabControl2);
             this.Controls.Add(this.tabControl1);
@@ -477,12 +523,12 @@ namespace WDS_Dispatches
             this.Controls.Add(this.labelScenarioName);
             this.Controls.Add(this.labelScenario);
             this.Controls.Add(this.menuMain);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.HelpButton = true;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuMain;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
+            this.MinimumSize = new System.Drawing.Size(850, 443);
             this.Name = "MainWindow";
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Envoy";
             this.Load += new System.EventHandler(this.MainWindow_Load);
@@ -545,6 +591,8 @@ namespace WDS_Dispatches
         private System.Windows.Forms.ToolStripMenuItem cutToolStripMenuItem;
         private System.Windows.Forms.RichTextBox boxMessageHistory;
         private ContextMenuStrip messageBodyContextMenu;
+        private Button btnCustomRecip;
+        private Button btnCustomSender;
     }
 }
 

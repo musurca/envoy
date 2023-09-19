@@ -439,6 +439,8 @@ namespace WDS_Dispatches
 
             editToolStripMenuItem.Enabled = false;
             settingsToolStripMenuItem1.Enabled = false;
+            btnCustomRecip.Enabled = false;
+            btnCustomSender.Enabled = false;
 
             SetScenarioName("Please load a battle.");
             SetTurnLabel("(File -> Load...)");
@@ -600,6 +602,8 @@ namespace WDS_Dispatches
 
                     editToolStripMenuItem.Enabled = true;
                     settingsToolStripMenuItem1.Enabled = true;
+                    btnCustomRecip.Enabled = true;
+                    btnCustomSender.Enabled = true;
 
                     if (_fileTimer != null) {
                         _fileTimer.Stop();
@@ -751,6 +755,24 @@ namespace WDS_Dispatches
                 System.Diagnostics.Process.Start("Envoy_Manual_v10.pdf");
             } catch(Exception) {
                 // do nothing
+            }
+        }
+
+        private void btnCustomRecip_Click(object sender, EventArgs e) {
+            CustomDispatchNode cdn = new CustomDispatchNode("recipient", _scenarioData);
+            if(cdn.ShowDialog() == DialogResult.OK) {
+                string name = cdn.CustomName;
+                Location loc = cdn.CustomLocation;
+                treeRecipient.SelectedNode = null;
+            }
+        }
+
+        private void btnCustomSender_Click(object sender, EventArgs e) {
+            CustomDispatchNode cdn = new CustomDispatchNode("sender", _scenarioData);
+            if (cdn.ShowDialog() == DialogResult.OK) {
+                string name = cdn.CustomName;
+                Location loc = cdn.CustomLocation;
+                treeSender.SelectedNode = null;
             }
         }
     }
