@@ -39,17 +39,19 @@
             // 
             // customName
             // 
-            this.customName.Location = new System.Drawing.Point(112, 15);
+            this.customName.Location = new System.Drawing.Point(224, 29);
+            this.customName.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.customName.Name = "customName";
-            this.customName.Size = new System.Drawing.Size(177, 20);
+            this.customName.Size = new System.Drawing.Size(350, 31);
             this.customName.TabIndex = 1;
             // 
             // nameLabel
             // 
             this.nameLabel.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.nameLabel.Location = new System.Drawing.Point(6, 18);
+            this.nameLabel.Location = new System.Drawing.Point(12, 35);
+            this.nameLabel.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             this.nameLabel.Name = "nameLabel";
-            this.nameLabel.Size = new System.Drawing.Size(100, 13);
+            this.nameLabel.Size = new System.Drawing.Size(200, 25);
             this.nameLabel.TabIndex = 1;
             this.nameLabel.Text = "Name of recipient:";
             this.nameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -57,9 +59,10 @@
             // label1
             // 
             this.label1.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.label1.Location = new System.Drawing.Point(6, 49);
+            this.label1.Location = new System.Drawing.Point(12, 94);
+            this.label1.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(100, 13);
+            this.label1.Size = new System.Drawing.Size(200, 25);
             this.label1.TabIndex = 2;
             this.label1.Text = "Location:";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -67,26 +70,29 @@
             // label2
             // 
             this.label2.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.label2.Location = new System.Drawing.Point(107, 49);
+            this.label2.Location = new System.Drawing.Point(214, 94);
+            this.label2.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(191, 13);
+            this.label2.Size = new System.Drawing.Size(382, 25);
             this.label2.TabIndex = 3;
             this.label2.Text = "(                           ,                             )";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // hexX
             // 
-            this.hexX.Location = new System.Drawing.Point(121, 44);
+            this.hexX.Location = new System.Drawing.Point(242, 89);
+            this.hexX.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.hexX.Name = "hexX";
-            this.hexX.Size = new System.Drawing.Size(73, 20);
+            this.hexX.Size = new System.Drawing.Size(146, 31);
             this.hexX.TabIndex = 2;
             this.hexX.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // hexY
             // 
-            this.hexY.Location = new System.Drawing.Point(208, 44);
+            this.hexY.Location = new System.Drawing.Point(416, 89);
+            this.hexY.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.hexY.Name = "hexY";
-            this.hexY.Size = new System.Drawing.Size(73, 20);
+            this.hexY.Size = new System.Drawing.Size(146, 31);
             this.hexY.TabIndex = 3;
             this.hexY.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
@@ -98,18 +104,21 @@
             this.groupBox1.Controls.Add(this.hexX);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Location = new System.Drawing.Point(13, 3);
+            this.groupBox1.Location = new System.Drawing.Point(26, 6);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(306, 78);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.groupBox1.Size = new System.Drawing.Size(612, 150);
             this.groupBox1.TabIndex = 6;
             this.groupBox1.TabStop = false;
             // 
             // btnOK
             // 
             this.btnOK.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.btnOK.Location = new System.Drawing.Point(242, 89);
+            this.btnOK.Location = new System.Drawing.Point(484, 171);
+            this.btnOK.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(75, 23);
+            this.btnOK.Size = new System.Drawing.Size(150, 44);
             this.btnOK.TabIndex = 3;
             this.btnOK.Text = "OK";
             this.btnOK.UseVisualStyleBackColor = true;
@@ -119,9 +128,10 @@
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.btnCancel.Location = new System.Drawing.Point(12, 89);
+            this.btnCancel.Location = new System.Drawing.Point(24, 171);
+            this.btnCancel.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(75, 23);
+            this.btnCancel.Size = new System.Drawing.Size(150, 44);
             this.btnCancel.TabIndex = 7;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
@@ -129,16 +139,17 @@
             // CustomDispatchNode
             // 
             this.AcceptButton = this.btnOK;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(331, 124);
+            this.ClientSize = new System.Drawing.Size(661, 237);
             this.ControlBox = false;
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.groupBox1);
             this.ForeColor = System.Drawing.SystemColors.ControlDark;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "CustomDispatchNode";

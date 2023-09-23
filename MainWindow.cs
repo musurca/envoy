@@ -22,6 +22,13 @@ namespace WDS_Dispatches
         private Dictionary<string, object> _curRecipient;
         private List<string> _recipientChain;
 
+        private bool        _customSenderSet;
+        private string      _customSenderName;
+        private Location    _customSenderLocation;
+        private bool        _customRecipientSet;
+        private string      _customRecipientName;
+        private Location    _customRecipientLocation;
+
         private DispatchState _dispatchState;
 
         public MainWindow() {
@@ -32,6 +39,9 @@ namespace WDS_Dispatches
             _fileTimer = null;
             _dispatchState = null;
             _recipientChain = new List<string>();
+
+            _customSenderSet = false;
+            _customRecipientSet = false;
         }
 
         private void MainWindow_Load(object sender, EventArgs e) {
@@ -275,34 +285,42 @@ namespace WDS_Dispatches
         }
 
         private string GetRecipient() {
-            TreeNode selected = null;
-            if (treeRecipient.InvokeRequired) {
-                selected = (TreeNode)treeRecipient.Invoke(
-                    new Func<Object>(() => treeRecipient.SelectedNode)
-                );
-            } else {
-                selected = treeRecipient.SelectedNode;
-            }
+            if (!_customRecipientSet) {
+                TreeNode selected = null;
+                if (treeRecipient.InvokeRequired) {
+                    selected = (TreeNode)treeRecipient.Invoke(
+                        new Func<Object>(() => treeRecipient.SelectedNode)
+                    );
+                } else {
+                    selected = treeRecipient.SelectedNode;
+                }
 
-            if (selected != null) { 
-                return selected.Text;
+                if (selected != null) {
+                    return selected.Text;
+                }
+            } else {
+                return _customRecipientName;
             }
 
             return "";
         }
 
         private string GetSender() {
-            TreeNode selected = null;
-            if (treeSender.InvokeRequired) {
-                selected = (TreeNode)treeSender.Invoke(
-                    new Func<Object>(() => treeSender.SelectedNode)
-                );
-            } else {
-                selected = treeSender.SelectedNode;
-            }
+            if (!_customSenderSet) {
+                TreeNode selected = null;
+                if (treeSender.InvokeRequired) {
+                    selected = (TreeNode)treeSender.Invoke(
+                        new Func<Object>(() => treeSender.SelectedNode)
+                    );
+                } else {
+                    selected = treeSender.SelectedNode;
+                }
 
-            if (selected != null) {
-                return selected.Text;
+                if (selected != null) {
+                    return selected.Text;
+                }
+            } else {
+                return _customSenderName;
             }
 
             return "";
@@ -311,6 +329,8 @@ namespace WDS_Dispatches
         private void SelectRecipient() {
             TreeNode selected = treeRecipient.SelectedNode;
             if (selected != null) {
+                _customRecipientSet = false;
+
                 TreeNode senderSelected = treeSender.SelectedNode;
                 if (senderSelected != null) {
                     // if we've selected same sender, clear sender
@@ -325,21 +345,31 @@ namespace WDS_Dispatches
                 _curRecipient = _scenarioData.GetUnitDataByNodeName(selected.Text);
                 if (_curRecipient != null) {
                     Location loc = (Location)_curRecipient["location"];
-                    labelMessageRecipient.Text = (string)_curRecipient["message_name"] + " " + loc.ToString();
+                    labelMessageRecipient.Text = $"{(string)_curRecipient["message_name"]} {loc}";
                 } else {
                     labelMessageRecipient.Text = selected.Text;
                 }
 
                 UpdateSelection();
             } else {
-                _curRecipient = null;
-                labelMessageRecipient.Text = "(no one)";
+                if (_customRecipientSet) {
+                    _curRecipient = new Dictionary<string, object> {
+                        { "location", _customRecipientLocation },
+                        { "parent_node", "" }
+                    };
+                    labelMessageRecipient.Text = $"{_customRecipientName} {_customRecipientLocation}"; 
+                } else {
+                    _curRecipient = null;
+                    labelMessageRecipient.Text = "(no one)";
+                }
             }
         }
 
         private void SelectSender() {
             TreeNode selected = treeSender.SelectedNode;
             if (selected != null) {
+                _customSenderSet = false;
+
                 TreeNode recipSelected = treeRecipient.SelectedNode;
                 if (recipSelected != null) {
                     // if we've selected same recipient, clear recipient
@@ -355,15 +385,23 @@ namespace WDS_Dispatches
                 if (_curSender != null) {
                     Location loc = (Location)_curSender["location"];
 
-                    labelMessageSender.Text = (string)_curSender["message_name"] + " " + loc.ToString();
+                    labelMessageSender.Text = $"{(string)_curSender["message_name"]} {loc}";
                 } else {
                     labelMessageSender.Text = selected.Text;
                 }
 
                 UpdateSelection();
             } else {
-                _curSender = null;
-                labelMessageSender.Text = "(no one)";
+                if (_customSenderSet) {
+                    _curSender = new Dictionary<string, object> {
+                        { "location", _customSenderLocation },
+                        { "parent_node", "" }
+                    };
+                    labelMessageSender.Text = $"{_customSenderName} {_customSenderLocation}";
+                } else {
+                    _curSender = null;
+                    labelMessageSender.Text = "(no one)";
+                }
             }
         }
 
@@ -752,7 +790,7 @@ namespace WDS_Dispatches
 
         private void howToUseToolStripMenuItem_Click(object sender, EventArgs e) {
             try {
-                System.Diagnostics.Process.Start("Envoy_Manual_v10.pdf");
+                System.Diagnostics.Process.Start("Envoy_Manual_v1.1.pdf");
             } catch(Exception) {
                 // do nothing
             }
@@ -761,18 +799,24 @@ namespace WDS_Dispatches
         private void btnCustomRecip_Click(object sender, EventArgs e) {
             CustomDispatchNode cdn = new CustomDispatchNode("recipient", _scenarioData);
             if(cdn.ShowDialog() == DialogResult.OK) {
-                string name = cdn.CustomName;
-                Location loc = cdn.CustomLocation;
+                _customRecipientSet = true;
+                _customRecipientName = cdn.CustomName;
+                _customRecipientLocation = cdn.CustomLocation;
                 treeRecipient.SelectedNode = null;
+
+                SelectRecipient();
             }
         }
 
         private void btnCustomSender_Click(object sender, EventArgs e) {
             CustomDispatchNode cdn = new CustomDispatchNode("sender", _scenarioData);
             if (cdn.ShowDialog() == DialogResult.OK) {
-                string name = cdn.CustomName;
-                Location loc = cdn.CustomLocation;
+                _customSenderSet = true;
+                _customSenderName = cdn.CustomName;
+                _customSenderLocation = cdn.CustomLocation;
                 treeSender.SelectedNode = null;
+
+                SelectSender();
             }
         }
     }

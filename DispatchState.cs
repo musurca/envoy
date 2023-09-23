@@ -32,6 +32,9 @@ namespace WDS_Dispatches
         [JsonProperty("is_invincible")]
         public bool IsInvincible { get; set; }
 
+        [JsonProperty("custom_destination")]
+        public Location CustomDestination { get; set; }
+
         public Dispatch() {
 
         }
@@ -43,7 +46,8 @@ namespace WDS_Dispatches
             Location starting_location,
             int turn_sent,
             List<string> recipientChain,
-            bool invincible=false)
+            bool invincible=false,
+            Location custom_destination=null)
         {
             this.Sender = sender;
             this.Recipient = recipient;
@@ -51,6 +55,12 @@ namespace WDS_Dispatches
             this.CurrentLocation = starting_location;
             this.RecipientChain = recipientChain;
             this.IsInvincible = invincible;
+
+            if (custom_destination != null) {
+                this.CustomDestination = custom_destination;
+            } else {
+                this.CustomDestination = new Location();
+            }
 
             this.TurnsInTransit = 0;
             this.TurnSent = turn_sent;
@@ -281,10 +291,12 @@ namespace WDS_Dispatches
             string recipient, 
             string message, 
             List<string> recipientChain,
-            bool is_invincible=false
+            bool is_invincible=false,
+            Location custom_origin=null,
+            Location custom_destination=null
         ) {
-            Location sender_location = Scenario.GetUnitLocation(sender);
-            Location recipient_location = Scenario.GetUnitLocation(recipient);
+            Location sender_location = custom_origin == null ? Scenario.GetUnitLocation(sender) : custom_origin;
+            Location recipient_location = custom_destination == null ? Scenario.GetUnitLocation(recipient) : custom_destination;
 
             if (sender_location.IsPresent() && 
                 recipient_location.IsPresent() &&
@@ -305,7 +317,8 @@ namespace WDS_Dispatches
                         sender_location, 
                         CurrentTurn,
                         recipientChain,
-                        is_invincible
+                        is_invincible,
+                        custom_destination
                     )
                 );
 
@@ -352,8 +365,12 @@ namespace WDS_Dispatches
                 dispatch.Tick();
 
                 List<string> recipChain = dispatch.RecipientChain;
-                Location recip_location = Scenario.GetUnitLocation(dispatch.Recipient);
-                if (!recip_location.IsPresent()) {
+
+                Location recip_location = dispatch.CustomDestination.IsPresent() 
+                    ? dispatch.CustomDestination
+                    : Scenario.GetUnitLocation(dispatch.Recipient);
+
+                if (!recip_location.IsPresent()) { // TODO redundant, possibly
                     // recipient has left the scenario or has been killed
                     // dispatch will not be delivered
                     Location sender_location = Scenario.GetUnitLocation(dispatch.Sender);
