@@ -635,6 +635,8 @@ namespace WDS_Dispatches
                     // Set default sender to overall commander
                     treeSender.SelectedNode = treeSender.Nodes[0];
                     treeRecipient.SelectedNode = null;
+                    _customRecipientSet = false;
+                    _customSenderSet = false;
                     SelectRecipient();
                     SelectSender();
 
@@ -665,6 +667,9 @@ namespace WDS_Dispatches
                     _fileTimer.Start();
                 } else {
                     ResetWindowState();
+
+                    _customRecipientSet = false;
+                    _customSenderSet = false;
 
                     if (_fileTimer != null) {
                         _fileTimer.Stop();
@@ -711,11 +716,17 @@ namespace WDS_Dispatches
 
         private void btnSend_Click(object sender, EventArgs e) {
             if(_dispatchState != null) {
+                Location customOrigin = _customSenderSet ? _customSenderLocation : null;
+                Location customDestination = _customRecipientSet ? _customRecipientLocation : null;
+
                 _dispatchState.SendDispatch(
                     GetSender(),
                     GetRecipient(),
                     messageBody.Text,
-                    _recipientChain
+                    _recipientChain,
+                    false,
+                    customOrigin,
+                    customDestination                    
                 );
 
                 UpdateSelection();

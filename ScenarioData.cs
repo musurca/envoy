@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -614,8 +615,8 @@ namespace WDS_Dispatches {
                     float obj_x = -1.0f;
                     float obj_y = -1.0f;
                     try {
-                        obj_x = float.Parse(items[0]);
-                        obj_y = float.Parse(items[1]);
+                        obj_x = float.Parse(items[0], CultureInfo.InvariantCulture.NumberFormat);
+                        obj_y = float.Parse(items[1], CultureInfo.InvariantCulture.NumberFormat);
                     } catch(Exception) {
                         MessageBox.Show(
                             "Error reading location of objective " + objective_name + "!",

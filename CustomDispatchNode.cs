@@ -16,6 +16,9 @@ namespace WDS_Dispatches {
         public CustomDispatchNode(string customType, ScenarioData sd) {
             InitializeComponent();
 
+            Width = 346;
+            Height = 162;
+
             nameLabel.Text = $"Name of {customType}:";
             Text = $"Custom {customType}...";
 
