@@ -84,6 +84,9 @@ namespace WDS_Dispatches
         [JsonProperty("dispatches_received")]
         public Dictionary<int, List<Dispatch>> DispatchesReceived { get; set; }
 
+        [JsonProperty("dispatches_lost")]
+        public Dictionary<int, List<Dispatch>> DispatchesLost { get; set; }
+
         [JsonProperty("dispatches_sent")]
         public Dictionary<int, Dictionary<string, int>> NumDispatchesSent { get; set; }
 
@@ -108,11 +111,17 @@ namespace WDS_Dispatches
             if (_rnd == null) {
                 _rnd = new Random();
             }
+
+            Dispatches = new List<Dispatch>();
+            DispatchesReceived = new Dictionary<int, List<Dispatch>>();
+            DispatchesLost = new Dictionary<int, List<Dispatch>>();
+            NumDispatchesSent = new Dictionary<int, Dictionary<string, int>>();
         }
 
         public DispatchState(ScenarioData sd) {
             Dispatches = new List<Dispatch>();
             DispatchesReceived = new Dictionary<int, List<Dispatch>>();
+            DispatchesLost = new Dictionary<int, List<Dispatch>>();
             NumDispatchesSent = new Dictionary<int, Dictionary<string, int>>();
 
             SetScenarioData(sd);
@@ -131,11 +140,13 @@ namespace WDS_Dispatches
             if(Nation != new_nation) {
                 Dispatches.Clear();
                 DispatchesReceived.Clear();
+                DispatchesLost.Clear();
                 NumDispatchesSent.Clear();
 
                 for(int i = 1; i <= CurrentTurn; i++) {
                     NumDispatchesSent.Add(i, new Dictionary<string, int>());
                     DispatchesReceived.Add(i, new List<Dispatch>());
+                    DispatchesLost.Add(i, new List<Dispatch>());
                 }
 
                 Nation = new_nation;
@@ -359,6 +370,8 @@ namespace WDS_Dispatches
 
             List<Dispatch> dispatchesToRemove = new List<Dispatch>();
 
+            List<Dispatch> dispatchesToLose = new List<Dispatch> ();
+
             List<Dispatch> dispatchesToAdd = new List<Dispatch>();
 
             foreach (Dispatch dispatch in Dispatches) {
@@ -391,6 +404,7 @@ namespace WDS_Dispatches
                         );
                     }
                     dispatchesToRemove.Add(dispatch);
+                    dispatchesToLose.Add(dispatch);
                 } else {
                     // we've reached our recipient if we're at the recipient's location, and have
                     // exhausted our recipient chain, or else are not using strict chain of command
@@ -403,6 +417,7 @@ namespace WDS_Dispatches
                         if (chance <= Settings.ChanceDispatchLost && !dispatch.IsInvincible) {
                             // Dispatch was lost!
                             dispatchesToRemove.Add(dispatch);
+                            dispatchesToLose.Add(dispatch);
                         } else {
                             Location target_location;
                             if (recipChain.Count > 0 && Settings.UseChainOfCommand) {
@@ -461,6 +476,7 @@ namespace WDS_Dispatches
                                                 if (chance <= Settings.InterdictionChance) {
                                                     // Dispatch was interdicted!
                                                     dispatchesToRemove.Add(dispatch);
+                                                    dispatchesToLose.Add(dispatch);
                                                     break;
                                                 }
                                             }
@@ -475,6 +491,7 @@ namespace WDS_Dispatches
                                         if (chance <= Settings.InterdictionChance) {
                                             // Dispatch was interdicted!
                                             dispatchesToRemove.Add(dispatch);
+                                            dispatchesToLose.Add(dispatch);
                                             break;
                                         }
                                     }
@@ -494,7 +511,9 @@ namespace WDS_Dispatches
                 }
             }
 
-            foreach(Dispatch dispatch in dispatchesToRemove) {
+            DispatchesLost.Add(CurrentTurn, dispatchesToLose);
+
+            foreach (Dispatch dispatch in dispatchesToRemove) {
                 Dispatches.Remove(dispatch);
             }
             dispatchesToRemove.Clear();

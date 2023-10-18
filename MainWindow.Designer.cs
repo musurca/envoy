@@ -87,11 +87,16 @@ namespace WDS_Dispatches
             this.label3 = new System.Windows.Forms.Label();
             this.messageBody = new System.Windows.Forms.RichTextBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.historyRecipientLabel = new System.Windows.Forms.Label();
+            this.historySenderLabel = new System.Windows.Forms.Label();
+            this.historyToLabel = new System.Windows.Forms.Label();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
             this.receivedHistoryTree = new System.Windows.Forms.TreeView();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
             this.sentHistoryTree = new System.Windows.Forms.TreeView();
+            this.historyFromLabel = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabRecipient.SuspendLayout();
             this.tabSender.SuspendLayout();
@@ -99,6 +104,7 @@ namespace WDS_Dispatches
             this.groupBox1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.panel2.SuspendLayout();
             this.tabControl2.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -151,7 +157,7 @@ namespace WDS_Dispatches
             // barDispatchesLeft
             // 
             this.barDispatchesLeft.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.barDispatchesLeft.Location = new System.Drawing.Point(307, 11);
+            this.barDispatchesLeft.Location = new System.Drawing.Point(331, 11);
             this.barDispatchesLeft.MarqueeAnimationSpeed = 1;
             this.barDispatchesLeft.Maximum = 5;
             this.barDispatchesLeft.Name = "barDispatchesLeft";
@@ -163,7 +169,7 @@ namespace WDS_Dispatches
             // 
             this.btnSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSend.Enabled = false;
-            this.btnSend.Location = new System.Drawing.Point(307, 424);
+            this.btnSend.Location = new System.Drawing.Point(331, 424);
             this.btnSend.Name = "btnSend";
             this.btnSend.Size = new System.Drawing.Size(118, 23);
             this.btnSend.TabIndex = 3;
@@ -246,11 +252,13 @@ namespace WDS_Dispatches
             // 
             this.boxMessageHistory.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.boxMessageHistory.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.boxMessageHistory.DetectUrls = false;
-            this.boxMessageHistory.Location = new System.Drawing.Point(6, 262);
+            this.boxMessageHistory.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.boxMessageHistory.Location = new System.Drawing.Point(3, 3);
             this.boxMessageHistory.Name = "boxMessageHistory";
             this.boxMessageHistory.ReadOnly = true;
-            this.boxMessageHistory.Size = new System.Drawing.Size(329, 211);
+            this.boxMessageHistory.Size = new System.Drawing.Size(355, 148);
             this.boxMessageHistory.TabIndex = 0;
             this.boxMessageHistory.Text = "";
             // 
@@ -263,7 +271,7 @@ namespace WDS_Dispatches
             this.helpToolStripMenuItem});
             this.menuMain.Location = new System.Drawing.Point(0, 0);
             this.menuMain.Name = "menuMain";
-            this.menuMain.Size = new System.Drawing.Size(1184, 24);
+            this.menuMain.Size = new System.Drawing.Size(1244, 24);
             this.menuMain.TabIndex = 11;
             this.menuMain.Text = "menuStrip1";
             // 
@@ -383,7 +391,7 @@ namespace WDS_Dispatches
             this.labelTurnCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelTurnCount.AutoSize = true;
             this.labelTurnCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelTurnCount.Location = new System.Drawing.Point(1074, 37);
+            this.labelTurnCount.Location = new System.Drawing.Point(1134, 37);
             this.labelTurnCount.Name = "labelTurnCount";
             this.labelTurnCount.Size = new System.Drawing.Size(94, 13);
             this.labelTurnCount.TabIndex = 12;
@@ -400,7 +408,7 @@ namespace WDS_Dispatches
             this.groupBox1.Controls.Add(this.tabControl1);
             this.groupBox1.Location = new System.Drawing.Point(12, 70);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(813, 479);
+            this.groupBox1.Size = new System.Drawing.Size(837, 479);
             this.groupBox1.TabIndex = 13;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Send Dispatch";
@@ -424,7 +432,7 @@ namespace WDS_Dispatches
             this.panel1.Controls.Add(this.btnSend);
             this.panel1.Location = new System.Drawing.Point(368, 17);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(439, 456);
+            this.panel1.Size = new System.Drawing.Size(463, 456);
             this.panel1.TabIndex = 9;
             // 
             // labelDispatchETA
@@ -508,7 +516,7 @@ namespace WDS_Dispatches
             this.messageBody.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.messageBody.Location = new System.Drawing.Point(12, 81);
             this.messageBody.Name = "messageBody";
-            this.messageBody.Size = new System.Drawing.Size(413, 332);
+            this.messageBody.Size = new System.Drawing.Size(437, 332);
             this.messageBody.TabIndex = 2;
             this.messageBody.Text = "";
             // 
@@ -517,14 +525,53 @@ namespace WDS_Dispatches
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.groupBox2.Controls.Add(this.panel2);
+            this.groupBox2.Controls.Add(this.historyRecipientLabel);
+            this.groupBox2.Controls.Add(this.historySenderLabel);
+            this.groupBox2.Controls.Add(this.historyToLabel);
             this.groupBox2.Controls.Add(this.tabControl2);
-            this.groupBox2.Controls.Add(this.boxMessageHistory);
-            this.groupBox2.Location = new System.Drawing.Point(831, 70);
+            this.groupBox2.Controls.Add(this.historyFromLabel);
+            this.groupBox2.Location = new System.Drawing.Point(855, 70);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(341, 479);
+            this.groupBox2.Size = new System.Drawing.Size(377, 479);
             this.groupBox2.TabIndex = 14;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Dispatch History";
+            // 
+            // panel2
+            // 
+            this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel2.Controls.Add(this.boxMessageHistory);
+            this.panel2.Location = new System.Drawing.Point(6, 317);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(363, 156);
+            this.panel2.TabIndex = 17;
+            // 
+            // historyRecipientLabel
+            // 
+            this.historyRecipientLabel.Location = new System.Drawing.Point(46, 291);
+            this.historyRecipientLabel.Name = "historyRecipientLabel";
+            this.historyRecipientLabel.Size = new System.Drawing.Size(323, 13);
+            this.historyRecipientLabel.TabIndex = 16;
+            // 
+            // historySenderLabel
+            // 
+            this.historySenderLabel.Location = new System.Drawing.Point(46, 264);
+            this.historySenderLabel.Name = "historySenderLabel";
+            this.historySenderLabel.Size = new System.Drawing.Size(323, 13);
+            this.historySenderLabel.TabIndex = 14;
+            // 
+            // historyToLabel
+            // 
+            this.historyToLabel.AutoSize = true;
+            this.historyToLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Underline, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.historyToLabel.Location = new System.Drawing.Point(7, 291);
+            this.historyToLabel.Name = "historyToLabel";
+            this.historyToLabel.Size = new System.Drawing.Size(23, 13);
+            this.historyToLabel.TabIndex = 14;
+            this.historyToLabel.Text = "To:";
             // 
             // tabControl2
             // 
@@ -533,7 +580,7 @@ namespace WDS_Dispatches
             this.tabControl2.Location = new System.Drawing.Point(6, 19);
             this.tabControl2.Name = "tabControl2";
             this.tabControl2.SelectedIndex = 0;
-            this.tabControl2.Size = new System.Drawing.Size(331, 237);
+            this.tabControl2.Size = new System.Drawing.Size(367, 237);
             this.tabControl2.TabIndex = 1;
             // 
             // tabPage1
@@ -543,9 +590,17 @@ namespace WDS_Dispatches
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(323, 211);
+            this.tabPage1.Size = new System.Drawing.Size(359, 211);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Received";
+            // 
+            // receivedHistoryTree
+            // 
+            this.receivedHistoryTree.Location = new System.Drawing.Point(3, 3);
+            this.receivedHistoryTree.Name = "receivedHistoryTree";
+            this.receivedHistoryTree.Size = new System.Drawing.Size(353, 204);
+            this.receivedHistoryTree.TabIndex = 0;
+            this.receivedHistoryTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.receivedHistoryTree_AfterSelect);
             // 
             // tabPage2
             // 
@@ -554,30 +609,34 @@ namespace WDS_Dispatches
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(323, 211);
+            this.tabPage2.Size = new System.Drawing.Size(359, 211);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Sent";
-            // 
-            // receivedHistoryTree
-            // 
-            this.receivedHistoryTree.Location = new System.Drawing.Point(3, 3);
-            this.receivedHistoryTree.Name = "receivedHistoryTree";
-            this.receivedHistoryTree.Size = new System.Drawing.Size(317, 204);
-            this.receivedHistoryTree.TabIndex = 0;
             // 
             // sentHistoryTree
             // 
             this.sentHistoryTree.Location = new System.Drawing.Point(3, 3);
             this.sentHistoryTree.Name = "sentHistoryTree";
-            this.sentHistoryTree.Size = new System.Drawing.Size(317, 204);
+            this.sentHistoryTree.Size = new System.Drawing.Size(353, 204);
             this.sentHistoryTree.TabIndex = 0;
+            this.sentHistoryTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.sentHistoryTree_AfterSelect);
+            // 
+            // historyFromLabel
+            // 
+            this.historyFromLabel.AutoSize = true;
+            this.historyFromLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Underline, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.historyFromLabel.Location = new System.Drawing.Point(7, 264);
+            this.historyFromLabel.Name = "historyFromLabel";
+            this.historyFromLabel.Size = new System.Drawing.Size(33, 13);
+            this.historyFromLabel.TabIndex = 15;
+            this.historyFromLabel.Text = "From:";
             // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(1184, 561);
+            this.ClientSize = new System.Drawing.Size(1244, 561);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.labelTurnCount);
@@ -588,7 +647,7 @@ namespace WDS_Dispatches
             this.HelpButton = true;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuMain;
-            this.MinimumSize = new System.Drawing.Size(1200, 600);
+            this.MinimumSize = new System.Drawing.Size(1260, 600);
             this.Name = "MainWindow";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -603,6 +662,8 @@ namespace WDS_Dispatches
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
+            this.panel2.ResumeLayout(false);
             this.tabControl2.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
@@ -663,6 +724,11 @@ namespace WDS_Dispatches
         private TabPage tabPage2;
         private TreeView receivedHistoryTree;
         private TreeView sentHistoryTree;
+        private Label historyToLabel;
+        private Label historyFromLabel;
+        private Label historyRecipientLabel;
+        private Label historySenderLabel;
+        private Panel panel2;
     }
 }
 

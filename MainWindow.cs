@@ -29,6 +29,8 @@ namespace WDS_Dispatches
         private string      _customRecipientName;
         private Location    _customRecipientLocation;
 
+        private Dictionary<string, Dispatch> _dispatchHistoryDict;
+
         private DispatchState _dispatchState;
 
         public MainWindow() {
@@ -42,6 +44,9 @@ namespace WDS_Dispatches
 
             _customSenderSet = false;
             _customRecipientSet = false;
+
+            historyFromLabel.Enabled = false;
+            historyToLabel.Enabled = false;
         }
 
         private void MainWindow_Load(object sender, EventArgs e) {
@@ -176,31 +181,6 @@ namespace WDS_Dispatches
 
                     if (canSendDispatches && curDispatch == null) {
                         EnableSending();
-                    }
-
-                    // Populate message history
-                    ClearMessageHistory();
-
-                    List<Dispatch> messageHistoryList = new List<Dispatch>();
-                    for (int i = _dispatchState.CurrentTurn; i >= 1; i--) {
-                        List<Dispatch> dispatchesReceived = _dispatchState.GetDispatchesReceived(i);
-
-                        foreach (Dispatch d in dispatchesReceived) {
-                            if (d.Recipient == receipName) {
-                                messageHistoryList.Add(d);
-                            }
-                        }
-                        if (messageHistoryList.Count > 0) {
-                            string turnHeader = "----------- TURN " + i + " -----------\n\n";
-                            foreach (Dispatch d in messageHistoryList) {
-                                turnHeader += "FROM: " + d.Sender + " \n\n";
-                                turnHeader += d.Message + "\n\n\n";
-                            }
-
-                            AppendMessageHistory(turnHeader);
-
-                            messageHistoryList.Clear();
-                        }
                     }
 
                     // Get recipient chain, if any
@@ -415,7 +395,7 @@ namespace WDS_Dispatches
 
         private void ShowSettingsWindow(bool initialSetting = false) {
             using(SettingsWindow sw = new SettingsWindow()) { 
-                sw.Text = "Settings for " + _scenarioData.GetScenarioName();
+                sw.Text = $"Settings for {_scenarioData.GetScenarioName()}";
                 if(initialSetting) {
                     sw.DisableCancel();
                 } else {
@@ -457,7 +437,7 @@ namespace WDS_Dispatches
                     _scenarioData.GetScenarioTime()
                 );
 
-            SetTurnLabel("Turn " + _scenarioData.GetCurrentTurn() + " of " + _scenarioData.GetMaxTurns());
+            SetTurnLabel($"Turn {_scenarioData.GetCurrentTurn()} of {_scenarioData.GetMaxTurns()}");
         }
 
         private void ClearOOBTree() {
@@ -469,8 +449,22 @@ namespace WDS_Dispatches
             treeSender.EndUpdate();
         }
 
+        private void ClearDispatchHistory() {
+            receivedHistoryTree.BeginUpdate();
+            receivedHistoryTree.Nodes.Clear();
+            receivedHistoryTree.EndUpdate();
+            sentHistoryTree.BeginUpdate();
+            sentHistoryTree.Nodes.Clear();
+            sentHistoryTree.EndUpdate();
+
+            historyRecipientLabel.Text = "";
+            historySenderLabel.Text = "";
+            ClearMessageHistory();
+        }
+
         private void ResetWindowState() {
             ClearOOBTree();
+            ClearDispatchHistory();
             
             SelectRecipient();
             SelectSender();
@@ -479,6 +473,10 @@ namespace WDS_Dispatches
             settingsToolStripMenuItem1.Enabled = false;
             btnCustomRecip.Enabled = false;
             btnCustomSender.Enabled = false;
+            receivedHistoryTree.Enabled = false;
+            sentHistoryTree.Enabled = false;
+            historyFromLabel.Enabled = false;
+            historyToLabel.Enabled = false;
 
             SetScenarioName("Please load a battle.");
             SetTurnLabel("(File -> Load...)");
@@ -589,6 +587,75 @@ namespace WDS_Dispatches
             messageBodyContextMenu.Items.Add(supportMenu);
         }
 
+        private void PopulateDispatchHistory() {
+            _dispatchHistoryDict = new Dictionary<string, Dispatch>();
+
+            // Build received history from confirmed received messages
+            receivedHistoryTree.BeginUpdate();
+            receivedHistoryTree.Nodes.Clear();
+            foreach(int turn in _dispatchState.DispatchesReceived.Keys) {
+                List<Dispatch> turnDispatches = _dispatchState.DispatchesReceived[turn];
+                if( turnDispatches.Count > 0 ) {
+                    string turnHeader = $"Turn {turn}";
+                    TreeNode turnNode = receivedHistoryTree.Nodes.Add(turnHeader);
+                    foreach(Dispatch dispatch in turnDispatches) {
+                        string messageId = $"{dispatch.Recipient} <- {dispatch.Sender}";
+                        turnNode.Nodes.Add(messageId);
+                        _dispatchHistoryDict.Add($"{turnHeader}: {messageId}", dispatch);
+                    }
+                }
+            }
+            receivedHistoryTree.EndUpdate();
+
+            // Build sent history from: 1) dispatches in circulation, 2) dispatches recieved, 3) lost dispatches
+            SortedDictionary<int, List<Dispatch>> sentDispatches = new SortedDictionary<int, List<Dispatch>>();
+            foreach (Dispatch d in _dispatchState.Dispatches) {
+                if (!sentDispatches.ContainsKey(d.TurnSent)) {
+                    sentDispatches.Add(d.TurnSent, new List<Dispatch> { d });
+                } else {
+                    sentDispatches[d.TurnSent].Add(d);
+                }
+            }
+            foreach (int turn in _dispatchState.DispatchesLost.Keys) {
+                List<Dispatch> turnDispatches = _dispatchState.DispatchesLost[turn];
+                if(turnDispatches.Count > 0 ) {
+                    foreach (Dispatch d in turnDispatches) {
+                        if (!sentDispatches.ContainsKey(d.TurnSent)) {
+                            sentDispatches.Add(d.TurnSent, new List<Dispatch>());
+                        }
+                        sentDispatches[d.TurnSent].Add(d);
+                    }
+                }
+            }
+            foreach (int turn in _dispatchState.DispatchesReceived.Keys) {
+                List<Dispatch> turnDispatches = _dispatchState.DispatchesReceived[turn];
+                if (turnDispatches.Count > 0) {
+                    foreach (Dispatch d in turnDispatches) {
+                        if (!sentDispatches.ContainsKey(d.TurnSent)) {
+                            sentDispatches.Add(d.TurnSent, new List<Dispatch>());
+                        }
+                        sentDispatches[d.TurnSent].Add(d);
+                    }
+                }
+            }
+
+            sentHistoryTree.BeginUpdate();
+            sentHistoryTree.Nodes.Clear();
+            foreach (int turn in sentDispatches.Keys) {
+                List<Dispatch> turnDispatches = sentDispatches[turn];
+                if (turnDispatches.Count > 0) {
+                    string turnHeader = $"Turn {turn}";
+                    TreeNode turnNode = sentHistoryTree.Nodes.Add(turnHeader);
+                    foreach (Dispatch dispatch in turnDispatches) {
+                        string messageId = $"{dispatch.Sender} -> {dispatch.Recipient}";
+                        turnNode.Nodes.Add(messageId);
+                        _dispatchHistoryDict.Add($"{turnHeader}: {messageId}", dispatch);
+                    }
+                }
+            }
+            sentHistoryTree.EndUpdate();
+        }
+
         private void loadToolStripMenuItem_Click(object sender, EventArgs e) {
             string battlePath = "";
             using (
@@ -611,6 +678,7 @@ namespace WDS_Dispatches
                 if (_dispatchState.Scenario.LoadedCorrectly()) {
                     _scenarioData = _dispatchState.Scenario;
                     ClearOOBTree();
+                    ClearDispatchHistory();
                     UpdateScenarioLabels();
 
                     string currentNation = _scenarioData.GetNation();
@@ -644,6 +712,10 @@ namespace WDS_Dispatches
                     settingsToolStripMenuItem1.Enabled = true;
                     btnCustomRecip.Enabled = true;
                     btnCustomSender.Enabled = true;
+                    sentHistoryTree.Enabled = true;
+                    receivedHistoryTree.Enabled = true;
+
+                    PopulateDispatchHistory();
 
                     if (_fileTimer != null) {
                         _fileTimer.Stop();
@@ -690,6 +762,7 @@ namespace WDS_Dispatches
             if (dispatches != null) {
                 UpdateScenarioLabels();
                 UpdateSelection();
+                PopulateDispatchHistory();
 
                 if (dispatches.Count > 0) {
                     // Show new dispatches that have been received
@@ -730,6 +803,7 @@ namespace WDS_Dispatches
                 );
 
                 UpdateSelection();
+                PopulateDispatchHistory();
             }
         }
 
@@ -740,6 +814,8 @@ namespace WDS_Dispatches
                 if (undo != null) {
                     UpdateSelection();
                     messageBody.Text = undo.Message;
+
+                    PopulateDispatchHistory();
                 }
             }
         }
@@ -828,6 +904,48 @@ namespace WDS_Dispatches
                 treeSender.SelectedNode = null;
 
                 SelectSender();
+            }
+        }
+
+        private void receivedHistoryTree_AfterSelect(object sender, TreeViewEventArgs e) {
+            if(_dispatchHistoryDict == null) { return; }
+
+            TreeNode selectedDispatch = receivedHistoryTree.SelectedNode;
+            if (selectedDispatch != null) {
+                if (selectedDispatch.Level == 1) {
+                    string id = $"{selectedDispatch.Parent.Text}: {selectedDispatch.Text}";
+                    if (_dispatchHistoryDict.ContainsKey(id)) {
+                        Dispatch d = _dispatchHistoryDict[id];
+                        ClearMessageHistory();
+                        AppendMessageHistory(d.Message);
+
+                        historyFromLabel.Enabled = true;
+                        historyToLabel.Enabled = true;
+                        historyRecipientLabel.Text = d.Recipient;
+                        historySenderLabel.Text = d.Sender;
+                    }
+                }
+            }
+        }
+
+        private void sentHistoryTree_AfterSelect(object sender, TreeViewEventArgs e) {
+            if (_dispatchHistoryDict == null) { return; }
+
+            TreeNode selectedDispatch = sentHistoryTree.SelectedNode;
+            if (selectedDispatch != null) {
+                if (selectedDispatch.Level == 1) {
+                    string id = $"{selectedDispatch.Parent.Text}: {selectedDispatch.Text}";
+                    if (_dispatchHistoryDict.ContainsKey(id)) {
+                        Dispatch d = _dispatchHistoryDict[id];
+                        ClearMessageHistory();
+                        AppendMessageHistory(d.Message);
+
+                        historyFromLabel.Enabled = true;
+                        historyToLabel.Enabled = true;
+                        historyRecipientLabel.Text = d.Recipient;
+                        historySenderLabel.Text = d.Sender;
+                    }
+                }
             }
         }
     }
