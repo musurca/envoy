@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 
 namespace WDS_Dispatches {
     public class ScenarioReader {
@@ -39,6 +40,7 @@ namespace WDS_Dispatches {
 
     public class ScenarioData {
         private static List<string> Months;
+        private static Dictionary<(int, int), List<string[]>> CoalitionsByEra;
 
         private static int ERA_PREMODERN = 0;
         private static int ERA_MODERN = 1;
@@ -57,6 +59,7 @@ namespace WDS_Dispatches {
         private int _currentTurn;
         private string _currentDay;
         private string _currentTime;
+        private int _year;
         private int _maxTurns;
         private string _filename;
         private string _oobFilename;
@@ -453,6 +456,7 @@ namespace WDS_Dispatches {
             _currentTime = hour + ":" + minStr + " " + dayTime;
 
             _currentDay = GetMonthNameByIndex(month) + " " + day + ", " + year;
+            _year = year;
 
             string line;
             for (int i = 0; i < remainingHeader; i++) {
@@ -797,8 +801,9 @@ namespace WDS_Dispatches {
         }
 
         public bool IsUnitFriendly(Dictionary<string, object> unit) {
-            string nation = (string)unit["nation"];
-            return GetNation() == nation;
+            string ourNation = GetNation();
+            string unitNation = (string)unit["nation"];
+            return AreNationsAllied(ourNation, unitNation);
         }
 
         public void UpdateUnitLocations(ScenarioReader scenario) {
@@ -1080,6 +1085,59 @@ namespace WDS_Dispatches {
             }
         }
 
+        private bool AreNationsAllied(string nation1, string nation2) {
+            if(nation1 == nation2) { return true; }
+
+            if (ScenarioData.CoalitionsByEra == null) {
+                ScenarioData.CoalitionsByEra = new Dictionary<(int, int), List<string[]>>();
+                // Seven Years War
+                ScenarioData.CoalitionsByEra.Add(
+                    (1756, 1761),
+                    new List<string[]>() {
+                        new string[] { "French", "Austrian", "Russian" },
+                        new string[] { "British", "Prussian" }
+                    }
+                );
+                ScenarioData.CoalitionsByEra.Add(
+                    (1762, 1763),
+                    new List<string[]>() {
+                        new string[] { "French", "Austrian", "Spanish" },
+                        new string[] { "British", "Prussian", "Russian", "Portuguese" }
+                    }
+                );
+
+                // American War of Independence
+                ScenarioData.CoalitionsByEra.Add(
+                    (1775, 1783),
+                    new List<string[]>() {
+                         new string[] { "American", "French" }
+                    }
+                );
+
+                // French Revolutionary & Napoleonic Wars
+                ScenarioData.CoalitionsByEra.Add(
+                    (1792, 1815),
+                    new List<string[]>() {
+                        new string[] { "British", "Spanish", "Portuguese", "Prussian", "Austrian", "Russian", "Dutch" }
+                    }
+                );
+            }
+
+            // Determine if both nations are in a coalition in the year of this scenario
+            foreach( var key in ScenarioData.CoalitionsByEra.Keys ) {
+                if( _year >= key.Item1 && _year <= key.Item2 ) {
+                    List<string[]> coalitions = ScenarioData.CoalitionsByEra[key];
+                    foreach (string[] coalition in coalitions) {
+                        if (coalition.Contains(nation1) && coalition.Contains(nation2)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
         private bool PopulateTreeWithArmies() {
             string friendlyNation;
             if (_armyPlayingIndex < _nations.Count) {
@@ -1100,7 +1158,7 @@ namespace WDS_Dispatches {
 
                 string codePrefix = (i + 1).ToString();
 
-                bool friendly = (armyNation == friendlyNation);
+                bool friendly = AreNationsAllied(friendlyNation, armyNation);
 
                 List<Dictionary<string, object>> units = (
                     List<Dictionary<string, object>>
