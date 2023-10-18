@@ -662,10 +662,10 @@ namespace WDS_Dispatches
                 OpenFileDialog dialog = new OpenFileDialog()
             ) {
                 dialog.InitialDirectory = @"C:\WDS";
-                dialog.Filter = "Battle files (*.btl;*.bte;*.btc)|*.btl;*.bte;*.btc";
+                dialog.Filter = "Battle files (*.btl;*.bte;*.btc;*.btt)|*.btl;*.bte;*.btc;*.btt";
                 dialog.FilterIndex = 0;
                 dialog.RestoreDirectory = true;
-
+                
                 // Show the dialog and check if the user clicked OK
                 if (dialog.ShowDialog() == DialogResult.OK) {
                     // Retrieve the selected folder path
