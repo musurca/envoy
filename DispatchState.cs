@@ -524,16 +524,45 @@ namespace WDS_Dispatches
             DispatchesReceived.Add(CurrentTurn, dispatchesReceivedThisTurn);
         }
 
-        public List<Dispatch> GetDispatchesReceived(int turn = -1) { 
-            if(turn == -1) {
-                turn = CurrentTurn;
+        public SortedDictionary<int, List<Dispatch>> GetDispatchesSent() {
+            SortedDictionary<int, List<Dispatch>> sentDispatches = new SortedDictionary<int, List<Dispatch>>();
+            foreach (Dispatch d in Dispatches) {
+                if (!sentDispatches.ContainsKey(d.TurnSent)) {
+                    sentDispatches.Add(d.TurnSent, new List<Dispatch> { d });
+                } else {
+                    sentDispatches[d.TurnSent].Add(d);
+                }
             }
-            
-            if(DispatchesReceived.ContainsKey(turn)) {
-                return DispatchesReceived[turn];
+            foreach (int turn in DispatchesLost.Keys) {
+                List<Dispatch> turnDispatches = DispatchesLost[turn];
+                if (turnDispatches.Count > 0) {
+                    foreach (Dispatch d in turnDispatches) {
+                        if (!sentDispatches.ContainsKey(d.TurnSent)) {
+                            sentDispatches.Add(d.TurnSent, new List<Dispatch>());
+                        }
+                        sentDispatches[d.TurnSent].Add(d);
+                    }
+                }
+            }
+            foreach (int turn in DispatchesReceived.Keys) {
+                List<Dispatch> turnDispatches = DispatchesReceived[turn];
+                if (turnDispatches.Count > 0) {
+                    foreach (Dispatch d in turnDispatches) {
+                        if (!sentDispatches.ContainsKey(d.TurnSent)) {
+                            sentDispatches.Add(d.TurnSent, new List<Dispatch>());
+                        }
+                        sentDispatches[d.TurnSent].Add(d);
+                    }
+                }
             }
 
-            return new List<Dispatch>();
+            return sentDispatches;
+        }
+
+        public int CalculateETA(int distance) {
+            int minDelay = Settings.MinimumDispatchDelay;
+            int time = distance / Settings.DispatchSpeed + 1;
+            return time < minDelay ? minDelay : time;
         }
     }
 }

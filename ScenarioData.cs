@@ -803,7 +803,11 @@ namespace WDS_Dispatches {
         public bool IsUnitFriendly(Dictionary<string, object> unit) {
             string ourNation = GetNation();
             string unitNation = (string)unit["nation"];
-            return AreNationsAllied(ourNation, unitNation);
+            return CoalitionEraTracker.AreNationsAllied(
+                _year, 
+                ourNation, 
+                unitNation
+            );
         }
 
         public void UpdateUnitLocations(ScenarioReader scenario) {
@@ -980,14 +984,14 @@ namespace WDS_Dispatches {
             string name
         ) {
             Dictionary<string, object> unitDict = new Dictionary<string, object> {
-                { "code",           code  },
-                { "node_name",      nodeName                            },
-                { "parent_node",    parentNode                                  },
-                { "message_name",   messageName        },
-                { "location",       location                      },
-                { "nation",         nation                            },
-                { "type",           uType                            },
-                { "name",           name },
+                { "code",           code        },
+                { "node_name",      nodeName    },
+                { "parent_node",    parentNode  },
+                { "message_name",   messageName },
+                { "location",       location    },
+                { "nation",         nation      },
+                { "type",           uType       },
+                { "name",           name        },
             };
             _unitData.Add(nodeName, unitDict);
 
@@ -1085,59 +1089,6 @@ namespace WDS_Dispatches {
             }
         }
 
-        private bool AreNationsAllied(string nation1, string nation2) {
-            if(nation1 == nation2) { return true; }
-
-            if (ScenarioData.CoalitionsByEra == null) {
-                ScenarioData.CoalitionsByEra = new Dictionary<(int, int), List<string[]>>();
-                // Seven Years War
-                ScenarioData.CoalitionsByEra.Add(
-                    (1756, 1761),
-                    new List<string[]>() {
-                        new string[] { "French", "Austrian", "Russian" },
-                        new string[] { "British", "Prussian" }
-                    }
-                );
-                ScenarioData.CoalitionsByEra.Add(
-                    (1762, 1763),
-                    new List<string[]>() {
-                        new string[] { "French", "Austrian", "Spanish" },
-                        new string[] { "British", "Prussian", "Russian", "Portuguese" }
-                    }
-                );
-
-                // American War of Independence
-                ScenarioData.CoalitionsByEra.Add(
-                    (1775, 1783),
-                    new List<string[]>() {
-                         new string[] { "American", "French" }
-                    }
-                );
-
-                // French Revolutionary & Napoleonic Wars
-                ScenarioData.CoalitionsByEra.Add(
-                    (1792, 1815),
-                    new List<string[]>() {
-                        new string[] { "British", "Spanish", "Portuguese", "Prussian", "Austrian", "Russian", "Dutch" }
-                    }
-                );
-            }
-
-            // Determine if both nations are in a coalition in the year of this scenario
-            foreach( var key in ScenarioData.CoalitionsByEra.Keys ) {
-                if( _year >= key.Item1 && _year <= key.Item2 ) {
-                    List<string[]> coalitions = ScenarioData.CoalitionsByEra[key];
-                    foreach (string[] coalition in coalitions) {
-                        if (coalition.Contains(nation1) && coalition.Contains(nation2)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
-
         private bool PopulateTreeWithArmies() {
             string friendlyNation;
             if (_armyPlayingIndex < _nations.Count) {
@@ -1158,7 +1109,11 @@ namespace WDS_Dispatches {
 
                 string codePrefix = (i + 1).ToString();
 
-                bool friendly = AreNationsAllied(friendlyNation, armyNation);
+                bool friendly = CoalitionEraTracker.AreNationsAllied(
+                    _year, 
+                    friendlyNation, 
+                    armyNation
+                );
 
                 List<Dictionary<string, object>> units = (
                     List<Dictionary<string, object>>
@@ -1540,12 +1495,10 @@ namespace WDS_Dispatches {
             _tvRecip = tvRecip;
             _tvSender = tvSender;
 
-            string wdsPath = "";
-
             string savesPath = Path.GetDirectoryName(battlePath);
-            
+
             // Move one directory up to get home game folder
-            wdsPath = Path.GetFullPath(
+            string wdsPath = Path.GetFullPath(
                 Path.Combine(savesPath, "..")
             );
 
@@ -1620,6 +1573,86 @@ namespace WDS_Dispatches {
             } else {
                 throw new Exception("Can't find " + unitname + "!");
             }
+        }
+
+        public void BuildRecipientChain(
+            ref List<string> recipientChain,
+            string senderName,
+            Dictionary<string, object> sender,
+            string receipName,
+            Dictionary<string, object> recipient
+        ) {
+            List<string> buildHierarchy(Dictionary<string, object> unit) {
+                List<string> hierarchy = new List<string>();
+                string unitParentNode = (string)unit["parent_node"];
+                while(unitParentNode != "") {
+                    hierarchy.Add(unitParentNode);
+                    Dictionary<string, object> parentUnit = GetUnitDataByNodeName(unitParentNode);
+                    unitParentNode = (string)parentUnit["parent_node"];
+                }
+
+                return hierarchy;
+            }
+
+            recipientChain.Clear();
+            
+            List<string> senderHierarchy = buildHierarchy(sender);
+            List<string> recipHierarchy = buildHierarchy(recipient);
+
+            bool foundMatch = false;
+            // Find shortest path through hierarchy between sender and receiver
+            for (int i = 0; i < senderHierarchy.Count; i++) {
+                string senderNode = senderHierarchy[i];
+                for (int j = 0; j < recipHierarchy.Count; j++) {
+                    string recipNode = recipHierarchy[j];
+                    if(senderNode == recipNode) {
+                        List<string> reverseRecip = recipHierarchy.GetRange(0, j);
+                        reverseRecip.Reverse();
+                        recipientChain = senderHierarchy.GetRange(0, i + 1);
+                        recipientChain.AddRange(reverseRecip);
+                        foundMatch = true;
+                        break;
+                    }
+                }
+                if(foundMatch) { break; }
+            }
+
+            if(!foundMatch) {
+                // Message has to pass through both hierarchies
+                recipHierarchy.Reverse();
+                senderHierarchy.AddRange(recipHierarchy);
+                recipientChain = senderHierarchy;
+            }
+        }
+
+        public int FindDistance(
+            List<string> recipientChain, 
+            Dictionary<string, object> sender,
+            Dictionary<string, object> recipient
+        ) {
+            Location recipLoc = (Location)recipient["location"];
+            Location senderLoc = (Location)sender["location"];
+
+            int distance = -1;
+            Location a = senderLoc;
+            if (senderLoc.IsPresent() && recipLoc.IsPresent()) {
+                Location b;
+                distance = 0;
+                if (recipientChain.Count > 0) {
+                    foreach (string recipientName in recipientChain) {
+                        Dictionary<string, object> unitInfo = GetUnitDataByNodeName(recipientName);
+                        b = (Location)unitInfo["location"];
+                        if (b.IsPresent()) {
+                            distance += a.DistanceTo(b);
+                            a = b;
+                        }
+                    }
+                }
+                b = (Location)recipient["location"];
+                distance += a.DistanceTo(b);
+            }
+
+            return distance;
         }
     }
 }

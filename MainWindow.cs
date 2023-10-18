@@ -184,73 +184,33 @@ namespace WDS_Dispatches
                     }
 
                     // Get recipient chain, if any
-                    _recipientChain.Clear();
                     if (_dispatchState.Settings.UseChainOfCommand) {
-                        bool senderFound = false;
-                        string recip_parent = (string)_curRecipient["parent_node"];
-                        while (recip_parent != "") {
-                            if (recip_parent != senderName) {
-                                _recipientChain.Add(recip_parent);
-                                Dictionary<string, object> parent = _scenarioData.GetUnitDataByNodeName(recip_parent);
-                                recip_parent = (string)parent["parent_node"];
-                            } else {
-                                senderFound = true;
-                                break;
-                            }
-                        }
-                        if (senderFound) {
-                            _recipientChain.Reverse();
-                        } else {
-                            _recipientChain.Clear();
-                            // Try it the other way
-                            senderFound = false;
-                            string sender_parent = (string)_curSender["parent_node"];
-                            while (sender_parent != "") {
-                                if (sender_parent != receipName) {
-                                    _recipientChain.Add(sender_parent);
-                                    Dictionary<string, object> parent = _scenarioData.GetUnitDataByNodeName(sender_parent);
-                                    sender_parent = (string)parent["parent_node"];
-                                } else {
-                                    senderFound = true;
-                                    break;
-                                }
-                            }
-
-                            if (!senderFound) {
-                                _recipientChain.Clear();
-                            }
-                        }
+                        _scenarioData.BuildRecipientChain(
+                            ref _recipientChain, 
+                            senderName, 
+                            _curSender, 
+                            receipName, 
+                            _curRecipient
+                        );
+                    } else {
+                        _recipientChain.Clear();
                     }
 
                     // Estimate delivery time
                     string final_delivery_eta = "";
+                    int distance = _scenarioData.FindDistance(
+                        _recipientChain, 
+                        _curSender, 
+                        _curRecipient
+                    );
 
-                    Location a = senderLoc;
-                    if (senderLoc.IsPresent() && recipLoc.IsPresent()) {
-                        Location b;
-                        int distance = 0;
-                        if (_recipientChain.Count > 0) {
-                            foreach (string recipient in _recipientChain) {
-                                Dictionary<string, object> unitInfo = _scenarioData.GetUnitDataByNodeName(recipient);
-                                b = (Location)unitInfo["location"];
-                                if (b.IsPresent()) {
-                                    distance += a.DistanceTo(b);
-                                    a = b;
-                                }
-                            }
-                        }
-                        b = (Location)_curRecipient["location"];
-                        distance += a.DistanceTo(b);
-
-                        int minDelay = _dispatchState.Settings.MinimumDispatchDelay;
-                        int time = distance / _dispatchState.Settings.DispatchSpeed + 1;
-                        time = time < minDelay ? minDelay : time;
-
-                        string interval = " turn";
+                    if (distance >= 0) {
+                        int time = _dispatchState.CalculateETA(distance);
+                        string interval = "";
                         if (time != 1) {
                             interval += "s";
                         }
-                        final_delivery_eta = time + interval;
+                        final_delivery_eta = $"{time} turn{interval}";
                     }
 
                     SetDispatchETA(final_delivery_eta);
@@ -607,38 +567,8 @@ namespace WDS_Dispatches
             }
             receivedHistoryTree.EndUpdate();
 
-            // Build sent history from: 1) dispatches in circulation, 2) dispatches recieved, 3) lost dispatches
-            SortedDictionary<int, List<Dispatch>> sentDispatches = new SortedDictionary<int, List<Dispatch>>();
-            foreach (Dispatch d in _dispatchState.Dispatches) {
-                if (!sentDispatches.ContainsKey(d.TurnSent)) {
-                    sentDispatches.Add(d.TurnSent, new List<Dispatch> { d });
-                } else {
-                    sentDispatches[d.TurnSent].Add(d);
-                }
-            }
-            foreach (int turn in _dispatchState.DispatchesLost.Keys) {
-                List<Dispatch> turnDispatches = _dispatchState.DispatchesLost[turn];
-                if(turnDispatches.Count > 0 ) {
-                    foreach (Dispatch d in turnDispatches) {
-                        if (!sentDispatches.ContainsKey(d.TurnSent)) {
-                            sentDispatches.Add(d.TurnSent, new List<Dispatch>());
-                        }
-                        sentDispatches[d.TurnSent].Add(d);
-                    }
-                }
-            }
-            foreach (int turn in _dispatchState.DispatchesReceived.Keys) {
-                List<Dispatch> turnDispatches = _dispatchState.DispatchesReceived[turn];
-                if (turnDispatches.Count > 0) {
-                    foreach (Dispatch d in turnDispatches) {
-                        if (!sentDispatches.ContainsKey(d.TurnSent)) {
-                            sentDispatches.Add(d.TurnSent, new List<Dispatch>());
-                        }
-                        sentDispatches[d.TurnSent].Add(d);
-                    }
-                }
-            }
-
+            // Get sent history
+            SortedDictionary<int, List<Dispatch>> sentDispatches = _dispatchState.GetDispatchesSent();
             sentHistoryTree.BeginUpdate();
             sentHistoryTree.Nodes.Clear();
             foreach (int turn in sentDispatches.Keys) {

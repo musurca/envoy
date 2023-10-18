@@ -89,6 +89,7 @@
     <Compile Include="About.Designer.cs">
       <DependentUpon>About.cs</DependentUpon>
     </Compile>
+    <Compile Include="CoalitionEraTracker.cs" />
     <Compile Include="CustomDispatchNode.cs">
       <SubType>Form</SubType>
     </Compile>
