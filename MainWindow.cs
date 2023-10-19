@@ -187,9 +187,7 @@ namespace WDS_Dispatches
                     if (_dispatchState.Settings.UseChainOfCommand) {
                         _scenarioData.BuildRecipientChain(
                             ref _recipientChain, 
-                            senderName, 
                             _curSender, 
-                            receipName, 
                             _curRecipient
                         );
                     } else {

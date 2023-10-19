@@ -1577,9 +1577,7 @@ namespace WDS_Dispatches {
 
         public void BuildRecipientChain(
             ref List<string> recipientChain,
-            string senderName,
             Dictionary<string, object> sender,
-            string receipName,
             Dictionary<string, object> recipient
         ) {
             List<string> buildHierarchy(Dictionary<string, object> unit) {
@@ -1595,12 +1593,33 @@ namespace WDS_Dispatches {
             }
 
             recipientChain.Clear();
-            
+
+            string senderNodeName = (string)sender["node_name"];
+            string recipNodeName = (string)recipient["node_name"];
             List<string> senderHierarchy = buildHierarchy(sender);
             List<string> recipHierarchy = buildHierarchy(recipient);
 
-            bool foundMatch = false;
             // Find shortest path through hierarchy between sender and receiver
+            
+            // First, see if recipient is in sender's direct hierarchy
+            for(int i = 0; i < senderHierarchy.Count; i++) {
+                if (senderHierarchy[i] == recipNodeName) {
+                    recipientChain = senderHierarchy.GetRange(0, i);
+                    return;
+                }
+            }
+
+            // If not, see if sender is in recipient's direct hierarchy
+            for (int i = 0; i < recipHierarchy.Count; i++) {
+                if (recipHierarchy[i] == senderNodeName) {
+                    recipientChain = recipHierarchy.GetRange(0, i);
+                    recipientChain.Reverse();
+                    return;
+                }
+            }
+
+            // If not, try to find a common parent in the two hierarchies, then
+            // link them
             for (int i = 0; i < senderHierarchy.Count; i++) {
                 string senderNode = senderHierarchy[i];
                 for (int j = 0; j < recipHierarchy.Count; j++) {
@@ -1610,19 +1629,16 @@ namespace WDS_Dispatches {
                         reverseRecip.Reverse();
                         recipientChain = senderHierarchy.GetRange(0, i + 1);
                         recipientChain.AddRange(reverseRecip);
-                        foundMatch = true;
-                        break;
+                        return;
                     }
                 }
-                if(foundMatch) { break; }
             }
 
-            if(!foundMatch) {
-                // Message has to pass through both hierarchies
-                recipHierarchy.Reverse();
-                senderHierarchy.AddRange(recipHierarchy);
-                recipientChain = senderHierarchy;
-            }
+            // If still no match, then message has to pass
+            // through both hierarchies in full
+            recipHierarchy.Reverse();
+            senderHierarchy.AddRange(recipHierarchy);
+            recipientChain = senderHierarchy;
         }
 
         public int FindDistance(
