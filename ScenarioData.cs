@@ -40,7 +40,6 @@ namespace WDS_Dispatches {
 
     public class ScenarioData {
         private static List<string> Months;
-        private static Dictionary<(int, int), List<string[]>> CoalitionsByEra;
 
         private static int ERA_PREMODERN = 0;
         private static int ERA_MODERN = 1;
