@@ -158,7 +158,7 @@ namespace WDS_Dispatches
             Scenario = sd;
             CurrentTurn = Scenario.GetCurrentTurn();
 
-            BattleFilename = Scenario.GetFilename();
+            BattleFilename = Scenario.GetFilenameFullPath();
             MapFilename = Scenario.GetMapFilename();
             PDTFilename = Scenario.GetPDTFilename();
             OOBFilename = Scenario.GetOOBFilename();
@@ -192,8 +192,28 @@ namespace WDS_Dispatches
                 );
 
                 DispatchState ds = JsonConvert.DeserializeObject<DispatchState>(json);
+
+                string battlepath = ds.BattleFilename;
+                if (!File.Exists(battlepath)) {
+                    battlepath = Path.Combine(
+                        Path.GetDirectoryName(filename),
+                        Path.GetFileName(ds.BattleFilename)
+                    );
+                    if (!File.Exists(battlepath)) {
+                        using (
+                            ReconnectBattleFile rbf = new ReconnectBattleFile(ds.BattleFilename)
+                        ) { 
+                            if(rbf.ShowDialog() == DialogResult.OK) {
+                                battlepath = rbf.NewPath;
+                            } else {
+                                throw new Exception("battle file not found!");
+                            }
+                        }
+                    }
+                }
+               
                 sd.LoadScenario(
-                    Path.Combine(Path.GetDirectoryName(filename), ds.BattleFilename), 
+                    battlepath, 
                     treeRecip, treeSender
                 );
 
@@ -209,6 +229,7 @@ namespace WDS_Dispatches
 
                 // Otherwise, pick up where we left off
                 ds.Scenario = sd;
+                ds.BattleFilename = battlepath;
                 if (ds.Nation != "") {
                     sd.SetNation(ds.Nation);
                 }

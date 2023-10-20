@@ -49,6 +49,8 @@ namespace WDS_Dispatches
 
             historyFromLabel.Enabled = false;
             historyToLabel.Enabled = false;
+
+            _dispatchFilename = "";
         }
 
         private void MainWindow_Load(object sender, EventArgs e) {
@@ -730,8 +732,15 @@ namespace WDS_Dispatches
             }
 
             if(battlePath != "") {
-                _dispatchState = DispatchState.Deserialize(battlePath, treeRecipient, treeSender);
-                if (_dispatchState.Scenario.LoadedCorrectly()) {
+                bool dispatchLoaded;
+                try {
+                    _dispatchState = DispatchState.Deserialize(battlePath, treeRecipient, treeSender);
+                    dispatchLoaded = true;
+                } catch {
+                    dispatchLoaded = false;
+                }
+                
+                if (dispatchLoaded && _dispatchState.Scenario.LoadedCorrectly()) {
                     _scenarioData = _dispatchState.Scenario;
                     ClearOOBTree();
                     ClearDispatchHistory();
@@ -813,6 +822,7 @@ namespace WDS_Dispatches
             }
 
             _dispatchFilename = battlePath;
+            SaveDispatch();
         }
 
         private void SaveDispatch() {
