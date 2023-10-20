@@ -166,7 +166,7 @@ namespace WDS_Dispatches
             Nation = Scenario.GetNation();
         }
 
-        public void Serialize() {
+        public void Serialize(string filename) {
             if(!Scenario.LoadedCorrectly()) {
                 // Don't create a dispatch state on disk if the scenario data
                 // wasn't loaded correctly
@@ -175,13 +175,8 @@ namespace WDS_Dispatches
             
             string json = JsonConvert.SerializeObject(this, Formatting.Indented);
 
-            string ext = "dispatch";
-            if(Scenario.IsPBEM()) {
-                ext += "_pem";
-            }
-
             File.WriteAllText(
-                Path.ChangeExtension(Scenario.GetFilenameFullPath(), ext), 
+                filename, //Path.ChangeExtension(Scenario.GetFilenameFullPath(), "dispatch"), 
                 json,
                 Encoding.GetEncoding("ISO-8859-1")
             );
@@ -189,25 +184,21 @@ namespace WDS_Dispatches
 
         public static DispatchState Deserialize(string filename, TreeView treeRecip, TreeView treeSender) {
             ScenarioData sd = new ScenarioData();
-            sd.LoadScenario(filename, treeRecip, treeSender);
-
-            string ext = "dispatch";
-            if(sd.IsPBEM()) {
-                ext += "_pem";
-            }
-
-            string dispatch_file = Path.ChangeExtension(filename, ext);
-            if(File.Exists(dispatch_file)) {
+            string ext = Path.GetExtension(filename).Trim().ToLower();
+            if (ext == ".dispatch") {
                 string json = File.ReadAllText(
-                    dispatch_file, 
+                    filename,
                     Encoding.GetEncoding("ISO-8859-1")
                 );
 
                 DispatchState ds = JsonConvert.DeserializeObject<DispatchState>(json);
+                sd.LoadScenario(
+                    Path.Combine(Path.GetDirectoryName(filename), ds.BattleFilename), 
+                    treeRecip, treeSender
+                );
 
-                if(
+                if (
                     ds.CurrentTurn > sd.GetCurrentTurn() ||
-                    ds.BattleFilename != sd.GetFilename() ||
                     ds.MapFilename != sd.GetMapFilename() ||
                     ds.PDTFilename != sd.GetPDTFilename() ||
                     ds.OOBFilename != sd.GetOOBFilename()
@@ -221,13 +212,14 @@ namespace WDS_Dispatches
                 if (ds.Nation != "") {
                     sd.SetNation(ds.Nation);
                 }
-                
+
                 ds.Nation = sd.GetNation();
                 return ds;
+            } else {
+                // New game
+                sd.LoadScenario(filename, treeRecip, treeSender);
+                return new DispatchState(sd);
             }
-
-            // New game
-            return new DispatchState(sd);
         }
 
         public int DispatchesSentBy(string sender) {
@@ -287,9 +279,7 @@ namespace WDS_Dispatches
                 if (last.TurnSent == CurrentTurn) { 
                     Dispatches.RemoveAt(Dispatches.Count - 1);
                     DecDispatchCount(last.Sender);
-                    
-                    Serialize();
-                    
+
                     return last;
                 }
             }
@@ -333,8 +323,6 @@ namespace WDS_Dispatches
                     )
                 );
 
-                Serialize();
-
                 return true;
             }
             return false;
@@ -353,7 +341,6 @@ namespace WDS_Dispatches
                         newDispatches.AddRange(DispatchesReceived[CurrentTurn]);
                     }
 
-                    Serialize();
                     return newDispatches;
                 }
             }

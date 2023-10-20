@@ -17,6 +17,8 @@ namespace WDS_Dispatches
         private FileSystemWatcher _watcher;
         private System.Timers.Timer _fileTimer;
 
+        string _dispatchFilename;
+
         private ScenarioData _scenarioData;
         private Dictionary<string, object> _curSender;
         private Dictionary<string, object> _curRecipient;
@@ -87,21 +89,19 @@ namespace WDS_Dispatches
 
         private void SetDispatchesRemaining(int sent_dispatches, int max_dispatches) {
             int cur_dispatches = max_dispatches - sent_dispatches;
+            string label = "";
+            if(max_dispatches > 0) {
+                label = $"{cur_dispatches} left";
+            }
 
-            if (barDispatchesLeft.InvokeRequired) {
-                barDispatchesLeft.Invoke(
+            if (barDispatchLabel.InvokeRequired) {
+                barDispatchLabel.Invoke(
                     (MethodInvoker)(
-                        () => barDispatchesLeft.Maximum = max_dispatches
-                    )
-                );
-                barDispatchesLeft.Invoke(
-                    (MethodInvoker)(
-                        () => barDispatchesLeft.Value = cur_dispatches
+                        () => barDispatchLabel.Text = label
                     )
                 );
             } else {
-                barDispatchesLeft.Maximum = max_dispatches;
-                barDispatchesLeft.Value = cur_dispatches;
+                barDispatchLabel.Text = label;
             }
         }
 
@@ -215,6 +215,8 @@ namespace WDS_Dispatches
 
                     return;
                 }
+            } else {
+                SetDispatchesRemaining(0, 0);
             }
 
             // Otherwise we can't send
@@ -364,10 +366,16 @@ namespace WDS_Dispatches
                     if (_scenarioData.GetNation() != sw.SelectedArmy) {
                         _dispatchState.ChangeNation(sw.SelectedArmy);
                         _scenarioData.PopulateUI();
+                        PopulateDispatchHistory();
 
+                        treeSender.SelectedNode = treeSender.Nodes[0];
+                        treeRecipient.SelectedNode = null;
+                        _customRecipientSet = false;
+                        _customSenderSet = false;
                         SelectRecipient();
                         SelectSender();
                     }
+                    SaveDispatch();
                 }
             }
         }
@@ -436,8 +444,8 @@ namespace WDS_Dispatches
             historyFromLabel.Enabled = false;
             historyToLabel.Enabled = false;
 
-            SetScenarioName("Please load a battle.");
-            SetTurnLabel("(File -> Load...)");
+            SetScenarioName("");
+            SetTurnLabel("");
         }
 
         private void PopulateContextMenu() {
@@ -584,7 +592,7 @@ namespace WDS_Dispatches
             sentHistoryTree.EndUpdate();
         }
 
-        private void loadToolStripMenuItem_Click(object sender, EventArgs e) {
+        private void newToolStripMenuItem_Click(object sender, EventArgs e) {
             string battlePath = "";
             using (
                 OpenFileDialog dialog = new OpenFileDialog()
@@ -593,7 +601,7 @@ namespace WDS_Dispatches
                 dialog.Filter = "Battle files (*.btl;*.bte;*.btc;*.btt)|*.btl;*.bte;*.btc;*.btt";
                 dialog.FilterIndex = 0;
                 dialog.RestoreDirectory = true;
-                
+
                 // Show the dialog and check if the user clicked OK
                 if (dialog.ShowDialog() == DialogResult.OK) {
                     // Retrieve the selected folder path
@@ -601,7 +609,7 @@ namespace WDS_Dispatches
                 }
             }
 
-            if(battlePath != "") {
+            if (battlePath != "") {
                 _dispatchState = DispatchState.Deserialize(battlePath, treeRecipient, treeSender);
                 if (_dispatchState.Scenario.LoadedCorrectly()) {
                     _scenarioData = _dispatchState.Scenario;
@@ -613,6 +621,25 @@ namespace WDS_Dispatches
 
                     if (_dispatchState.Settings == null) {
                         ShowSettingsWindow(true);
+
+                        // Get a name for the Envoy save
+                        bool saveFileChosen = false;
+                        while (!saveFileChosen) {
+                            using (
+                                SaveFileDialog dialog = new SaveFileDialog()
+                            ) {
+                                dialog.InitialDirectory = Path.GetDirectoryName(battlePath);
+                                dialog.Filter = "Envoy saves (*.dispatch)|*.dispatch";
+                                dialog.FilterIndex = 0;
+                                // Show the dialog and check if the user clicked OK
+                                if (dialog.ShowDialog() == DialogResult.OK) {
+                                    _dispatchFilename = dialog.FileName;
+                                    saveFileChosen = true;
+                                }
+                            }
+                        }
+
+                        SaveDispatch();
                     } else if (!_dispatchState.Settings.Validate()) {
                         // old settings, need update
                         ShowSettingsWindow(true);
@@ -680,7 +707,117 @@ namespace WDS_Dispatches
                     }
 
                     _dispatchState = null;
+                    _dispatchFilename = "";
                 }
+            }
+        }
+
+        private void loadToolStripMenuItem_Click(object sender, EventArgs e) {
+            string battlePath = "";
+            using (
+                OpenFileDialog dialog = new OpenFileDialog()
+            ) {
+                dialog.InitialDirectory = @"C:\WDS";
+                dialog.Filter = "Envoy save (*.dispatch)|*.dispatch";
+                dialog.FilterIndex = 0;
+                dialog.RestoreDirectory = true;
+
+                // Show the dialog and check if the user clicked OK
+                if (dialog.ShowDialog() == DialogResult.OK) {
+                    // Retrieve the selected folder path
+                    battlePath = dialog.FileName;
+                }
+            }
+
+            if(battlePath != "") {
+                _dispatchState = DispatchState.Deserialize(battlePath, treeRecipient, treeSender);
+                if (_dispatchState.Scenario.LoadedCorrectly()) {
+                    _scenarioData = _dispatchState.Scenario;
+                    ClearOOBTree();
+                    ClearDispatchHistory();
+                    UpdateScenarioLabels();
+
+                    string currentNation = _scenarioData.GetNation();
+
+                    if (_dispatchState.Settings == null) {
+                        ShowSettingsWindow(true);
+                    } else if (!_dispatchState.Settings.Validate()) {
+                        // old settings, need update
+                        ShowSettingsWindow(true);
+                    }
+
+                    if (_scenarioData.GetNation() == currentNation) {
+                        _scenarioData.PopulateUI();
+                    }
+
+                    if (_dispatchState.CurrentTurn < _scenarioData.GetCurrentTurn()) {
+                        UpdateDispatchState();
+                    }
+
+                    PopulateContextMenu();
+
+                    // Set default sender to overall commander
+                    treeSender.SelectedNode = treeSender.Nodes[0];
+                    treeRecipient.SelectedNode = null;
+                    _customRecipientSet = false;
+                    _customSenderSet = false;
+                    SelectRecipient();
+                    SelectSender();
+
+                    editToolStripMenuItem.Enabled = true;
+                    settingsToolStripMenuItem1.Enabled = true;
+                    btnCustomRecip.Enabled = true;
+                    btnCustomSender.Enabled = true;
+                    sentHistoryTree.Enabled = true;
+                    receivedHistoryTree.Enabled = true;
+
+                    PopulateDispatchHistory();
+
+                    if (_fileTimer != null) {
+                        _fileTimer.Stop();
+                        _fileTimer.Dispose();
+                    }
+                    if (_watcher != null) {
+                        _watcher.Dispose();
+                    }
+
+                    string scenFile = _scenarioData.GetFilenameFullPath();
+                    _watcher = new FileSystemWatcher(
+                        Path.GetDirectoryName(scenFile),
+                        Path.GetFileName(scenFile)
+                    );
+                    _watcher.NotifyFilter = NotifyFilters.LastWrite;
+                    _watcher.Changed += FileChanged;
+                    _watcher.EnableRaisingEvents = true;
+
+                    _fileTimer = new System.Timers.Timer(250);
+                    _fileTimer.AutoReset = true;
+                    _fileTimer.Elapsed += TimerElapsed;
+                    _fileTimer.Start();
+                } else {
+                    ResetWindowState();
+
+                    _customRecipientSet = false;
+                    _customSenderSet = false;
+
+                    if (_fileTimer != null) {
+                        _fileTimer.Stop();
+                        _fileTimer.Dispose();
+                    }
+                    if (_watcher != null) {
+                        _watcher.Dispose();
+                    }
+
+                    _dispatchState = null;
+                }
+            }
+
+            _dispatchFilename = battlePath;
+        }
+
+        private void SaveDispatch() {
+            if (_dispatchState != null && _dispatchFilename != "") {
+                _dispatchState.Serialize(_dispatchFilename);
             }
         }
 
@@ -703,6 +840,8 @@ namespace WDS_Dispatches
                     rd_thread.Start();
                 }
             }
+
+            SaveDispatch();
         }
 
         private void TimerElapsed(object sender, ElapsedEventArgs e) {
@@ -730,6 +869,8 @@ namespace WDS_Dispatches
                     customDestination                    
                 );
 
+                SaveDispatch();
+
                 UpdateSelection();
                 PopulateDispatchHistory();
             }
@@ -738,8 +879,10 @@ namespace WDS_Dispatches
         private void undoLastDispatchToolStripMenuItem1_Click(object sender, EventArgs e) {
             if (_dispatchState != null) {
                 Dispatch undo = _dispatchState.UndoLastDispatch();
-
+                
                 if (undo != null) {
+                    SaveDispatch();
+
                     UpdateSelection();
                     messageBody.Text = undo.Message;
 

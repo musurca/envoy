@@ -51,7 +51,6 @@ namespace WDS_Dispatches
             this.labelScenario = new System.Windows.Forms.Label();
             this.labelScenarioName = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.barDispatchesLeft = new System.Windows.Forms.ProgressBar();
             this.btnSend = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabRecipient = new System.Windows.Forms.TabPage();
@@ -78,6 +77,7 @@ namespace WDS_Dispatches
             this.labelTurnCount = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.barDispatchLabel = new System.Windows.Forms.Label();
             this.labelDispatchETA = new System.Windows.Forms.Label();
             this.labelMessageSender = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
@@ -97,6 +97,7 @@ namespace WDS_Dispatches
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.sentHistoryTree = new System.Windows.Forms.TreeView();
             this.historyFromLabel = new System.Windows.Forms.Label();
+            this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl1.SuspendLayout();
             this.tabRecipient.SuspendLayout();
             this.tabSender.SuspendLayout();
@@ -137,13 +138,11 @@ namespace WDS_Dispatches
             // 
             // labelScenarioName
             // 
-            this.labelScenarioName.AutoSize = true;
             this.labelScenarioName.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelScenarioName.Location = new System.Drawing.Point(12, 37);
             this.labelScenarioName.Name = "labelScenarioName";
-            this.labelScenarioName.Size = new System.Drawing.Size(124, 13);
+            this.labelScenarioName.Size = new System.Drawing.Size(837, 13);
             this.labelScenarioName.TabIndex = 3;
-            this.labelScenarioName.Text = "Please load a battle.";
             this.labelScenarioName.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // label1
@@ -153,17 +152,6 @@ namespace WDS_Dispatches
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(0, 13);
             this.label1.TabIndex = 4;
-            // 
-            // barDispatchesLeft
-            // 
-            this.barDispatchesLeft.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.barDispatchesLeft.Location = new System.Drawing.Point(331, 11);
-            this.barDispatchesLeft.MarqueeAnimationSpeed = 1;
-            this.barDispatchesLeft.Maximum = 5;
-            this.barDispatchesLeft.Name = "barDispatchesLeft";
-            this.barDispatchesLeft.Size = new System.Drawing.Size(118, 16);
-            this.barDispatchesLeft.Step = 1;
-            this.barDispatchesLeft.TabIndex = 5;
             // 
             // btnSend
             // 
@@ -278,6 +266,7 @@ namespace WDS_Dispatches
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.newToolStripMenuItem,
             this.loadToolStripMenuItem,
             this.toolStripSeparator2,
             this.exitToolStripMenuItem});
@@ -289,19 +278,19 @@ namespace WDS_Dispatches
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
             this.loadToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.L)));
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.loadToolStripMenuItem.Text = "&Load...";
             this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(146, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -389,13 +378,11 @@ namespace WDS_Dispatches
             // labelTurnCount
             // 
             this.labelTurnCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.labelTurnCount.AutoSize = true;
             this.labelTurnCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelTurnCount.Location = new System.Drawing.Point(1134, 37);
+            this.labelTurnCount.Location = new System.Drawing.Point(855, 37);
             this.labelTurnCount.Name = "labelTurnCount";
-            this.labelTurnCount.Size = new System.Drawing.Size(94, 13);
+            this.labelTurnCount.Size = new System.Drawing.Size(373, 13);
             this.labelTurnCount.TabIndex = 12;
-            this.labelTurnCount.Text = "(File -> Load...)";
             this.labelTurnCount.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // groupBox1
@@ -420,13 +407,13 @@ namespace WDS_Dispatches
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.BackColor = System.Drawing.Color.Gainsboro;
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.barDispatchLabel);
             this.panel1.Controls.Add(this.labelDispatchETA);
             this.panel1.Controls.Add(this.labelMessageSender);
             this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.labelMessageRecipient);
             this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.labelMessageSenderFrom);
-            this.panel1.Controls.Add(this.barDispatchesLeft);
             this.panel1.Controls.Add(this.label3);
             this.panel1.Controls.Add(this.messageBody);
             this.panel1.Controls.Add(this.btnSend);
@@ -434,6 +421,17 @@ namespace WDS_Dispatches
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(463, 456);
             this.panel1.TabIndex = 9;
+            // 
+            // barDispatchLabel
+            // 
+            this.barDispatchLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.barDispatchLabel.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.barDispatchLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.barDispatchLabel.Location = new System.Drawing.Point(382, 8);
+            this.barDispatchLabel.Name = "barDispatchLabel";
+            this.barDispatchLabel.Size = new System.Drawing.Size(67, 18);
+            this.barDispatchLabel.TabIndex = 14;
+            this.barDispatchLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // labelDispatchETA
             // 
@@ -631,6 +629,14 @@ namespace WDS_Dispatches
             this.historyFromLabel.TabIndex = 15;
             this.historyFromLabel.Text = "From:";
             // 
+            // newToolStripMenuItem
+            // 
+            this.newToolStripMenuItem.Name = "newToolStripMenuItem";
+            this.newToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.newToolStripMenuItem.Text = "&New...";
+            this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -682,7 +688,6 @@ namespace WDS_Dispatches
         private System.Windows.Forms.Label labelScenario;
         private System.Windows.Forms.Label labelScenarioName;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ProgressBar barDispatchesLeft;
         private System.Windows.Forms.Button btnSend;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabRecipient;
@@ -729,6 +734,8 @@ namespace WDS_Dispatches
         private Label historyRecipientLabel;
         private Label historySenderLabel;
         private Panel panel2;
+        private Label barDispatchLabel;
+        private ToolStripMenuItem newToolStripMenuItem;
     }
 }
 

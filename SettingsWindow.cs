@@ -113,7 +113,6 @@ namespace WDS_Dispatches
         {
             SaveCurrentSettingsTo(_settings);
             _ds.Settings = _settings;
-            _ds.Serialize();
 
             // Translate the readable army name to its underlying army ID
             SelectedArmy = _nameToArmyId[armyBox.SelectedIndex];
