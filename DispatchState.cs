@@ -36,7 +36,12 @@ namespace WDS_Dispatches
         public Location CustomDestination { get; set; }
 
         public Dispatch() {
-
+            Recipient = "";
+            Sender = "";
+            Message = "";
+            CurrentLocation = new Location();
+            CustomDestination = new Location();
+            RecipientChain = new List<string>();
         }
 
         public Dispatch(
@@ -185,7 +190,7 @@ namespace WDS_Dispatches
         public static DispatchState Deserialize(string filename, TreeView treeRecip, TreeView treeSender) {
             ScenarioData sd = new ScenarioData();
             string ext = Path.GetExtension(filename).Trim().ToLower();
-            if (ext == ".dispatch") {
+            if (ext == ".dispatch" || ext == ".dispatch_pem") {
                 string json = File.ReadAllText(
                     filename,
                     Encoding.GetEncoding("ISO-8859-1")

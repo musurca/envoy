@@ -720,7 +720,7 @@ namespace WDS_Dispatches
                 OpenFileDialog dialog = new OpenFileDialog()
             ) {
                 dialog.InitialDirectory = @"C:\WDS";
-                dialog.Filter = "Envoy save (*.dispatch)|*.dispatch";
+                dialog.Filter = "Envoy saves (*.dispatch;*.dispatch_pem)|*.dispatch;*.dispatch_pem";
                 dialog.FilterIndex = 0;
                 dialog.RestoreDirectory = true;
 
