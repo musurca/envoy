@@ -296,6 +296,7 @@ namespace WDS_Dispatches
             } else {
                 if (_customRecipientSet) {
                     _curRecipient = new Dictionary<string, object> {
+                        { "node_name", _customRecipientName },
                         { "location", _customRecipientLocation },
                         { "parent_node", "" }
                     };
@@ -336,6 +337,7 @@ namespace WDS_Dispatches
             } else {
                 if (_customSenderSet) {
                     _curSender = new Dictionary<string, object> {
+                        { "node_name", _customSenderName },
                         { "location", _customSenderLocation },
                         { "parent_node", "" }
                     };
