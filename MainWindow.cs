@@ -186,7 +186,11 @@ namespace WDS_Dispatches
                     }
 
                     // Get recipient chain, if any
-                    if (_dispatchState.Settings.UseChainOfCommand) {
+                    if (
+                        _dispatchState.Settings.UseChainOfCommand && 
+                        !_customRecipientSet && 
+                        !_customSenderSet
+                    ) {
                         _scenarioData.BuildRecipientChain(
                             ref _recipientChain, 
                             _curSender, 
@@ -908,15 +912,23 @@ namespace WDS_Dispatches
         }
 
         private void cutToolStripMenuItem_Click(object sender, EventArgs e) {
-            if (messageBody.Enabled) {
-                messageBody.Cut();
-            } else {
-                messageBody.Copy();
+            if (messageBody.SelectionLength > 0) {
+                if (messageBody.Enabled) {
+                    messageBody.Cut();
+                } else {
+                    messageBody.Copy();
+                }
+            } else if(boxMessageHistory.SelectionLength > 0) {
+                boxMessageHistory.Copy();
             }
         }
 
         private void copyToolStripMenuItem_Click(object sender, EventArgs e) {
-            messageBody.Copy();
+            if (messageBody.SelectionLength > 0) {
+                messageBody.Copy();
+            } else if (boxMessageHistory.SelectionLength > 0) {
+                boxMessageHistory.Copy();
+            }
         }
 
         private void pasteToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -1030,6 +1042,10 @@ namespace WDS_Dispatches
                     }
                 }
             }
+        }
+
+        private void copyToolStripMenuItem_Click_1(object sender, EventArgs e) {
+            boxMessageHistory.Copy();
         }
     }
 }

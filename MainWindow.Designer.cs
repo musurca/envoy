@@ -61,6 +61,7 @@ namespace WDS_Dispatches
             this.boxMessageHistory = new System.Windows.Forms.RichTextBox();
             this.menuMain = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -97,7 +98,8 @@ namespace WDS_Dispatches
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.sentHistoryTree = new System.Windows.Forms.TreeView();
             this.historyFromLabel = new System.Windows.Forms.Label();
-            this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.messageHistoryContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl1.SuspendLayout();
             this.tabRecipient.SuspendLayout();
             this.tabSender.SuspendLayout();
@@ -109,6 +111,7 @@ namespace WDS_Dispatches
             this.tabControl2.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
+            this.messageHistoryContextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // treeRecipient
@@ -241,6 +244,7 @@ namespace WDS_Dispatches
             this.boxMessageHistory.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.boxMessageHistory.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.boxMessageHistory.ContextMenuStrip = this.messageHistoryContextMenu;
             this.boxMessageHistory.DetectUrls = false;
             this.boxMessageHistory.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.boxMessageHistory.Location = new System.Drawing.Point(3, 3);
@@ -274,23 +278,31 @@ namespace WDS_Dispatches
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "&File";
             // 
+            // newToolStripMenuItem
+            // 
+            this.newToolStripMenuItem.Name = "newToolStripMenuItem";
+            this.newToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.newToolStripMenuItem.Text = "&New...";
+            this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
+            // 
             // loadToolStripMenuItem
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
             this.loadToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.L)));
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
             this.loadToolStripMenuItem.Text = "&Load...";
             this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(147, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -629,13 +641,19 @@ namespace WDS_Dispatches
             this.historyFromLabel.TabIndex = 15;
             this.historyFromLabel.Text = "From:";
             // 
-            // newToolStripMenuItem
+            // messageHistoryContextMenu
             // 
-            this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-            this.newToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.newToolStripMenuItem.Text = "&New...";
-            this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
+            this.messageHistoryContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.copyToolStripMenuItem});
+            this.messageHistoryContextMenu.Name = "messageHistoryContextMenu";
+            this.messageHistoryContextMenu.Size = new System.Drawing.Size(103, 26);
+            // 
+            // copyToolStripMenuItem
+            // 
+            this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
+            this.copyToolStripMenuItem.Text = "Copy";
+            this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click_1);
             // 
             // MainWindow
             // 
@@ -673,6 +691,7 @@ namespace WDS_Dispatches
             this.tabControl2.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
+            this.messageHistoryContextMenu.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -736,6 +755,8 @@ namespace WDS_Dispatches
         private Panel panel2;
         private Label barDispatchLabel;
         private ToolStripMenuItem newToolStripMenuItem;
+        private ContextMenuStrip messageHistoryContextMenu;
+        private ToolStripMenuItem copyToolStripMenuItem;
     }
 }
 
