@@ -972,7 +972,7 @@ namespace WDS_Dispatches
 
         private void howToUseToolStripMenuItem_Click(object sender, EventArgs e) {
             try {
-                System.Diagnostics.Process.Start("Envoy_Manual_v1.1.pdf");
+                System.Diagnostics.Process.Start("manual\\Envoy_Manual_v11.pdf");
             } catch(Exception) {
                 // do nothing
             }
