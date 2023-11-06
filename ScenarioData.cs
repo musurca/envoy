@@ -883,11 +883,19 @@ namespace WDS_Dispatches {
                         TreeNode senderResult = SearchTreeViewByText(_tvSender, node_name);
                         if (recipResult != null && senderResult != null) {
                             if (loc.IsPresent()) {
-                                recipResult.ForeColor = System.Drawing.Color.Black;
-                                senderResult.ForeColor = System.Drawing.Color.Black;
+                                TreeViewUtil.treeNodeSetForeColor(
+                                    _tvRecip, recipResult, System.Drawing.Color.Black
+                                );
+                                TreeViewUtil.treeNodeSetForeColor(
+                                    _tvSender, senderResult, System.Drawing.Color.Black
+                                );
                             } else {
-                                recipResult.ForeColor = System.Drawing.Color.Gray;
-                                senderResult.ForeColor = System.Drawing.Color.Gray;
+                                TreeViewUtil.treeNodeSetForeColor(
+                                    _tvRecip, recipResult, System.Drawing.Color.Gray
+                                );
+                                TreeViewUtil.treeNodeSetForeColor(
+                                    _tvSender, senderResult, System.Drawing.Color.Gray
+                                );
                             }
                         }
                     }

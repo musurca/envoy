@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -20,6 +21,7 @@ namespace WDS_Dispatches
         string _dispatchFilename;
 
         private ScenarioData _scenarioData;
+        private object _selectionThreadLock = new object();
         private Dictionary<string, object> _curSender;
         private Dictionary<string, object> _curRecipient;
         private List<string> _recipientChain;
@@ -31,8 +33,10 @@ namespace WDS_Dispatches
         private string      _customRecipientName;
         private Location    _customRecipientLocation;
 
+        private object _dispatchHistoryThreadLock = new object();
         private Dictionary<string, Dispatch> _dispatchHistoryDict;
 
+        private object _dispatchStateThreadLock = new object();
         private DispatchState _dispatchState;
 
         public MainWindow() {
@@ -140,94 +144,96 @@ namespace WDS_Dispatches
         }
 
         private void UpdateSelection() {
-            if (messageBody.InvokeRequired) {
-                messageBody.Invoke((MethodInvoker)(() => messageBody.Clear()));
-            } else {
-                messageBody.Clear();
-            }
-
-            SetDispatchETA("");
-
-            if (_dispatchState != null && _curSender != null) {
-                // make sure sender can still send dispatches
-                int dispatchesSent = _dispatchState.DispatchesSentBy(GetSender());
-                bool canSendDispatches = dispatchesSent < _dispatchState.Settings.DispatchesPerLeader;
-                if (!canSendDispatches) { // TODO max dispatches per leader
-                    DisableSending();
+            lock (_selectionThreadLock) {
+                if (messageBody.InvokeRequired) {
+                    messageBody.Invoke((MethodInvoker)(() => messageBody.Clear()));
+                } else {
+                    messageBody.Clear();
                 }
-                SetDispatchesRemaining(
-                    dispatchesSent,
-                    _dispatchState.Settings.DispatchesPerLeader
-                );
 
-                if (_curRecipient != null) {
-                    Location recipLoc = (Location)_curRecipient["location"];
-                    Location senderLoc = (Location)_curSender["location"];
+                SetDispatchETA("");
 
-                    if(!recipLoc.IsPresent() || !senderLoc.IsPresent()) {
-                        canSendDispatches = false;
+                if (_dispatchState != null && _curSender != null) {
+                    // make sure sender can still send dispatches
+                    int dispatchesSent = _dispatchState.DispatchesSentBy(GetSender());
+                    bool canSendDispatches = dispatchesSent < _dispatchState.Settings.DispatchesPerLeader;
+                    if (!canSendDispatches) { // TODO max dispatches per leader
                         DisableSending();
                     }
-
-                    string senderName = GetSender();
-                    string receipName = GetRecipient();
-
-                    Dispatch curDispatch = _dispatchState.FindDispatch(
-                        senderName,
-                        receipName
+                    SetDispatchesRemaining(
+                        dispatchesSent,
+                        _dispatchState.Settings.DispatchesPerLeader
                     );
-                    if (curDispatch != null) {
-                        DisableSending();
-                        SetMessageBodyText(curDispatch.Message);
-                    }
 
-                    if (canSendDispatches && curDispatch == null) {
-                        EnableSending();
-                    }
+                    if (_curRecipient != null) {
+                        Location recipLoc = (Location)_curRecipient["location"];
+                        Location senderLoc = (Location)_curSender["location"];
 
-                    // Get recipient chain, if any
-                    if (
-                        _dispatchState.Settings.UseChainOfCommand && 
-                        !_customRecipientSet && 
-                        !_customSenderSet
-                    ) {
-                        _scenarioData.BuildRecipientChain(
-                            ref _recipientChain, 
-                            _curSender, 
+                        if (!recipLoc.IsPresent() || !senderLoc.IsPresent()) {
+                            canSendDispatches = false;
+                            DisableSending();
+                        }
+
+                        string senderName = GetSender();
+                        string receipName = GetRecipient();
+
+                        Dispatch curDispatch = _dispatchState.FindDispatch(
+                            senderName,
+                            receipName
+                        );
+                        if (curDispatch != null) {
+                            DisableSending();
+                            SetMessageBodyText(curDispatch.Message);
+                        }
+
+                        if (canSendDispatches && curDispatch == null) {
+                            EnableSending();
+                        }
+
+                        // Get recipient chain, if any
+                        if (
+                            _dispatchState.Settings.UseChainOfCommand &&
+                            !_customRecipientSet &&
+                            !_customSenderSet
+                        ) {
+                            _scenarioData.BuildRecipientChain(
+                                ref _recipientChain,
+                                _curSender,
+                                _curRecipient
+                            );
+                        } else {
+                            _recipientChain.Clear();
+                        }
+
+                        // Estimate delivery time
+                        string final_delivery_eta = "";
+                        int distance = _scenarioData.FindDistance(
+                            _recipientChain,
+                            _curSender,
                             _curRecipient
                         );
-                    } else {
-                        _recipientChain.Clear();
-                    }
 
-                    // Estimate delivery time
-                    string final_delivery_eta = "";
-                    int distance = _scenarioData.FindDistance(
-                        _recipientChain, 
-                        _curSender, 
-                        _curRecipient
-                    );
-
-                    if (distance >= 0) {
-                        int time = _dispatchState.CalculateETA(distance);
-                        string interval = "";
-                        if (time != 1) {
-                            interval += "s";
+                        if (distance >= 0) {
+                            int time = _dispatchState.CalculateETA(distance);
+                            string interval = "";
+                            if (time != 1) {
+                                interval += "s";
+                            }
+                            final_delivery_eta = $"{time} turn{interval}";
                         }
-                        final_delivery_eta = $"{time} turn{interval}";
+
+                        SetDispatchETA(final_delivery_eta);
+
+                        return;
                     }
-
-                    SetDispatchETA(final_delivery_eta);
-
-                    return;
+                } else {
+                    SetDispatchesRemaining(0, 0);
                 }
-            } else {
-                SetDispatchesRemaining(0, 0);
-            }
 
-            // Otherwise we can't send
-            DisableSending();
-            SetMessageBodyText("");
+                // Otherwise we can't send
+                DisableSending();
+                SetMessageBodyText("");
+            }
         }
 
         private string GetRecipient() {
@@ -281,10 +287,9 @@ namespace WDS_Dispatches
                 if (senderSelected != null) {
                     // if we've selected same sender, clear sender
                     if (senderSelected.Text == selected.Text) {
-                        _curRecipient = null;
-                        labelMessageRecipient.Text = "(no one)";
-                        UpdateSelection();
-                        return;
+                        TreeViewUtil.treeUnselect(treeSender);
+                        _curSender = null;
+                        labelMessageSender.Text = "(no one)";
                     }
                 }
 
@@ -295,8 +300,6 @@ namespace WDS_Dispatches
                 } else {
                     labelMessageRecipient.Text = selected.Text;
                 }
-
-                UpdateSelection();
             } else {
                 if (_customRecipientSet) {
                     _curRecipient = new Dictionary<string, object> {
@@ -310,6 +313,7 @@ namespace WDS_Dispatches
                     labelMessageRecipient.Text = "(no one)";
                 }
             }
+            UpdateSelection();
         }
 
         private void SelectSender() {
@@ -321,10 +325,9 @@ namespace WDS_Dispatches
                 if (recipSelected != null) {
                     // if we've selected same recipient, clear recipient
                     if (recipSelected.Text == selected.Text) {
-                        _curSender = null;
-                        labelMessageSender.Text = "(no one)";
-                        UpdateSelection();
-                        return;
+                        TreeViewUtil.treeUnselect(treeRecipient);
+                        _curRecipient = null;
+                        labelMessageRecipient.Text = "(no one)";
                     }
                 }
 
@@ -336,8 +339,6 @@ namespace WDS_Dispatches
                 } else {
                     labelMessageSender.Text = selected.Text;
                 }
-
-                UpdateSelection();
             } else {
                 if (_customSenderSet) {
                     _curSender = new Dictionary<string, object> {
@@ -351,14 +352,20 @@ namespace WDS_Dispatches
                     labelMessageSender.Text = "(no one)";
                 }
             }
+
+            UpdateSelection();
         }
 
         private void treeRecipient_AfterSelect(object sender, TreeViewEventArgs e) {
-            SelectRecipient();
+            if (treeRecipient.SelectedNode != null) {
+                SelectRecipient();
+            }
         }
 
         private void treeSender_AfterSelect(object sender, TreeViewEventArgs e) {
-            SelectSender();
+            if (treeSender.SelectedNode != null) {
+                SelectSender();
+            }
         }
 
         private void ShowSettingsWindow(bool initialSetting = false) {
@@ -376,12 +383,11 @@ namespace WDS_Dispatches
                         _scenarioData.PopulateUI();
                         PopulateDispatchHistory();
 
-                        treeSender.SelectedNode = treeSender.Nodes[0];
-                        treeRecipient.SelectedNode = null;
-                        _customRecipientSet = false;
-                        _customSenderSet = false;
-                        SelectRecipient();
-                        SelectSender();
+                        TreeViewUtil.treeSelect(treeSender, treeSender.Nodes[0]);
+                        TreeViewUtil.treeUnselect(treeRecipient);
+
+                        ClearCustomRecipient();
+                        ClearCustomSender();
                     }
                     SaveDispatch();
                 }
@@ -562,42 +568,61 @@ namespace WDS_Dispatches
         }
 
         private void PopulateDispatchHistory() {
-            _dispatchHistoryDict = new Dictionary<string, Dispatch>();
+            lock (_dispatchHistoryThreadLock) {
+                _dispatchHistoryDict = new Dictionary<string, Dispatch>();
 
-            // Build received history from confirmed received messages
-            receivedHistoryTree.BeginUpdate();
-            receivedHistoryTree.Nodes.Clear();
-            foreach(int turn in _dispatchState.DispatchesReceived.Keys) {
-                List<Dispatch> turnDispatches = _dispatchState.DispatchesReceived[turn];
-                if( turnDispatches.Count > 0 ) {
-                    string turnHeader = $"Turn {turn}";
-                    TreeNode turnNode = receivedHistoryTree.Nodes.Add(turnHeader);
-                    foreach(Dispatch dispatch in turnDispatches) {
-                        string messageId = $"{dispatch.Recipient} <- {dispatch.Sender}";
-                        turnNode.Nodes.Add(messageId);
-                        _dispatchHistoryDict.Add($"{turnHeader}: {messageId}", dispatch);
+                // Build received history from confirmed received messages
+                TreeViewUtil.treeBeginUpdate(receivedHistoryTree);
+                TreeViewUtil.treeClear(receivedHistoryTree);
+                foreach (int turn in _dispatchState.DispatchesReceived.Keys) {
+                    List<Dispatch> turnDispatches = _dispatchState.DispatchesReceived[turn];
+                    if (turnDispatches.Count > 0) {
+                        string turnHeader = $"Turn {turn}";
+                        TreeNode turnNode = TreeViewUtil.treeAdd(receivedHistoryTree, turnHeader);
+                        foreach (Dispatch dispatch in turnDispatches) {
+                            string messageId = $"{dispatch.Recipient} <- {dispatch.Sender}";
+                            TreeViewUtil.treeNodeAdd(receivedHistoryTree, turnNode, messageId);
+                            _dispatchHistoryDict.Add($"{turnHeader}: {messageId}", dispatch);
+                        }
                     }
                 }
-            }
-            receivedHistoryTree.EndUpdate();
+                TreeViewUtil.treeEndUpdate(receivedHistoryTree);
 
-            // Get sent history
-            SortedDictionary<int, List<Dispatch>> sentDispatches = _dispatchState.GetDispatchesSent();
-            sentHistoryTree.BeginUpdate();
-            sentHistoryTree.Nodes.Clear();
-            foreach (int turn in sentDispatches.Keys) {
-                List<Dispatch> turnDispatches = sentDispatches[turn];
+                // Get sent history
+                SortedDictionary<int, List<Dispatch>> sentDispatches = _dispatchState.GetDispatchesSent();
+                TreeViewUtil.treeBeginUpdate(sentHistoryTree);
+                TreeViewUtil.treeClear(sentHistoryTree);
+                foreach (int turn in sentDispatches.Keys) {
+                    List<Dispatch> turnDispatches = sentDispatches[turn];
+                    if (turnDispatches.Count > 0) {
+                        string turnHeader = $"Turn {turn}";
+                        TreeNode turnNode = TreeViewUtil.treeAdd(sentHistoryTree, turnHeader);
+                        foreach (Dispatch dispatch in turnDispatches) {
+                            string messageId = $"{dispatch.Sender} -> {dispatch.Recipient}";
+                            TreeViewUtil.treeNodeAdd(sentHistoryTree, turnNode, messageId);
+                            _dispatchHistoryDict.Add($"{turnHeader}: {messageId}", dispatch);
+                        }
+                    }
+                }
+                TreeViewUtil.treeEndUpdate(sentHistoryTree);
+            }
+        }
+
+        private void UpdateDispatchHistory(int turn, List<Dispatch> turnDispatches) {
+            lock (_dispatchHistoryThreadLock) {
+                TreeViewUtil.treeBeginUpdate(receivedHistoryTree);
+                TreeViewUtil.treeClear(receivedHistoryTree);
                 if (turnDispatches.Count > 0) {
                     string turnHeader = $"Turn {turn}";
-                    TreeNode turnNode = sentHistoryTree.Nodes.Add(turnHeader);
+                    TreeNode turnNode = TreeViewUtil.treeAdd(receivedHistoryTree, turnHeader);
                     foreach (Dispatch dispatch in turnDispatches) {
-                        string messageId = $"{dispatch.Sender} -> {dispatch.Recipient}";
-                        turnNode.Nodes.Add(messageId);
+                        string messageId = $"{dispatch.Recipient} <- {dispatch.Sender}";
+                        TreeViewUtil.treeNodeAdd(receivedHistoryTree, turnNode, messageId);
                         _dispatchHistoryDict.Add($"{turnHeader}: {messageId}", dispatch);
                     }
                 }
+                TreeViewUtil.treeEndUpdate(receivedHistoryTree);
             }
-            sentHistoryTree.EndUpdate();
         }
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -664,12 +689,10 @@ namespace WDS_Dispatches
                     PopulateContextMenu();
 
                     // Set default sender to overall commander
-                    treeSender.SelectedNode = treeSender.Nodes[0];
-                    treeRecipient.SelectedNode = null;
-                    _customRecipientSet = false;
-                    _customSenderSet = false;
-                    SelectRecipient();
-                    SelectSender();
+                    TreeViewUtil.treeSelect(treeSender, treeSender.Nodes[0]);
+                    TreeViewUtil.treeUnselect(treeRecipient);
+                    ClearCustomRecipient();
+                    ClearCustomSender();
 
                     editToolStripMenuItem.Enabled = true;
                     settingsToolStripMenuItem1.Enabled = true;
@@ -772,12 +795,10 @@ namespace WDS_Dispatches
                     PopulateContextMenu();
 
                     // Set default sender to overall commander
-                    treeSender.SelectedNode = treeSender.Nodes[0];
-                    treeRecipient.SelectedNode = null;
-                    _customRecipientSet = false;
-                    _customSenderSet = false;
-                    SelectRecipient();
-                    SelectSender();
+                    TreeViewUtil.treeSelect(treeSender, treeSender.Nodes[0]);
+                    TreeViewUtil.treeUnselect(treeRecipient);
+                    ClearCustomRecipient();
+                    ClearCustomSender();
 
                     editToolStripMenuItem.Enabled = true;
                     settingsToolStripMenuItem1.Enabled = true;
@@ -833,27 +854,40 @@ namespace WDS_Dispatches
 
         private void SaveDispatch() {
             if (_dispatchState != null && _dispatchFilename != "") {
-                _dispatchState.Serialize(_dispatchFilename);
+                lock (_dispatchStateThreadLock) {
+                    _dispatchState.Serialize(_dispatchFilename);
+                }
             }
         }
 
         private void UpdateDispatchState() {
             List<Dispatch> dispatches = _dispatchState.Update();
+            SortedDictionary<int, List<Dispatch>> dispatchesByTurn = new SortedDictionary<int, List<Dispatch>>();
+            foreach (Dispatch d in dispatches) {
+                int arrivalTurn = d.TurnSent + d.TurnsInTransit;
+                if (!dispatchesByTurn.ContainsKey(arrivalTurn)) {
+                    dispatchesByTurn.Add(arrivalTurn, new List<Dispatch>());
+                }
+                dispatchesByTurn[arrivalTurn].Add(d);
+            }
 
             if (dispatches != null) {
                 UpdateScenarioLabels();
                 UpdateSelection();
-                PopulateDispatchHistory();
 
                 if (dispatches.Count > 0) {
                     // Show new dispatches that have been received
-                    ReviewDispatches rd = new ReviewDispatches();
-                    rd.SetDispatchDelivery(_dispatchState.CurrentTurn, dispatches);
+                    foreach (int turn in dispatchesByTurn.Keys) {
+                        ReviewDispatches rd = new ReviewDispatches();
+                        rd.SetDispatchDelivery(turn, dispatchesByTurn[turn]);
 
-                    System.Threading.Thread rd_thread = new System.Threading.Thread(
-                        () => { Application.Run(rd); }
-                    );
-                    rd_thread.Start();
+                        System.Threading.Thread rd_thread = new System.Threading.Thread(
+                            () => { System.Windows.Forms.Application.Run(rd); }
+                        );
+                        rd_thread.Start();
+
+                        UpdateDispatchHistory(turn, dispatchesByTurn[turn]);
+                    }
                 }
             }
 
@@ -978,67 +1012,89 @@ namespace WDS_Dispatches
             }
         }
 
+        private void SetCustomRecipient(string name, Location loc) {
+            _customRecipientSet = true;
+            _customRecipientName = name;
+            _customRecipientLocation = loc;
+            
+            TreeViewUtil.treeUnselect(treeRecipient);
+            SelectRecipient();
+        }
+
+        private void SetCustomSender(string name, Location loc) {
+            _customSenderSet = true;
+            _customSenderName = name;
+            _customSenderLocation = loc;
+
+            TreeViewUtil.treeUnselect(treeSender);
+            SelectSender();
+        }
+
+        private void ClearCustomRecipient() {
+            _customRecipientSet = false;
+            SelectRecipient();
+        }
+
+        private void ClearCustomSender() {
+            _customSenderSet = false;
+            SelectSender();
+        }
+
         private void btnCustomRecip_Click(object sender, EventArgs e) {
             CustomDispatchNode cdn = new CustomDispatchNode("recipient", _scenarioData);
             if(cdn.ShowDialog() == DialogResult.OK) {
-                _customRecipientSet = true;
-                _customRecipientName = cdn.CustomName;
-                _customRecipientLocation = cdn.CustomLocation;
-                treeRecipient.SelectedNode = null;
-
-                SelectRecipient();
+                SetCustomRecipient(cdn.CustomName, cdn.CustomLocation);
             }
         }
 
         private void btnCustomSender_Click(object sender, EventArgs e) {
             CustomDispatchNode cdn = new CustomDispatchNode("sender", _scenarioData);
             if (cdn.ShowDialog() == DialogResult.OK) {
-                _customSenderSet = true;
-                _customSenderName = cdn.CustomName;
-                _customSenderLocation = cdn.CustomLocation;
-                treeSender.SelectedNode = null;
-
-                SelectSender();
+                SetCustomSender(cdn.CustomName, cdn.CustomLocation);
             }
         }
 
         private void receivedHistoryTree_AfterSelect(object sender, TreeViewEventArgs e) {
-            if(_dispatchHistoryDict == null) { return; }
+            lock (_dispatchHistoryThreadLock) {
+                if (_dispatchHistoryDict == null) { return; }
 
-            TreeNode selectedDispatch = receivedHistoryTree.SelectedNode;
-            if (selectedDispatch != null) {
-                if (selectedDispatch.Level == 1) {
-                    string id = $"{selectedDispatch.Parent.Text}: {selectedDispatch.Text}";
-                    if (_dispatchHistoryDict.ContainsKey(id)) {
-                        Dispatch d = _dispatchHistoryDict[id];
-                        ClearMessageHistory();
-                        AppendMessageHistory(d.Message);
+                TreeNode selectedDispatch = receivedHistoryTree.SelectedNode;
+                if (selectedDispatch != null) {
+                    if (selectedDispatch.Level == 1) {
+                        string id = $"{selectedDispatch.Parent.Text}: {selectedDispatch.Text}";
+                        if (_dispatchHistoryDict.ContainsKey(id)) {
+                            Dispatch d = _dispatchHistoryDict[id];
+                            ClearMessageHistory();
+                            AppendMessageHistory(d.Message);
 
-                        historyFromLabel.Enabled = true;
-                        historyToLabel.Enabled = true;
-                        historyRecipientLabel.Text = d.Recipient;
-                        historySenderLabel.Text = d.Sender;
+                            historyFromLabel.Enabled = true;
+                            historyToLabel.Enabled = true;
+                            historyRecipientLabel.Text = d.Recipient;
+                            historySenderLabel.Text = d.Sender;
+                        }
                     }
                 }
             }
         }
 
         private void sentHistoryTree_AfterSelect(object sender, TreeViewEventArgs e) {
-            if (_dispatchHistoryDict == null) { return; }
+            lock (_dispatchHistoryThreadLock) {
+                if (_dispatchHistoryDict == null) { return; }
 
-            TreeNode selectedDispatch = sentHistoryTree.SelectedNode;
-            if (selectedDispatch != null) {
-                if (selectedDispatch.Level == 1) {
-                    string id = $"{selectedDispatch.Parent.Text}: {selectedDispatch.Text}";
-                    if (_dispatchHistoryDict.ContainsKey(id)) {
-                        Dispatch d = _dispatchHistoryDict[id];
-                        ClearMessageHistory();
-                        AppendMessageHistory(d.Message);
+                TreeNode selectedDispatch = sentHistoryTree.SelectedNode;
+                if (selectedDispatch != null) {
+                    if (selectedDispatch.Level == 1) {
+                        string id = $"{selectedDispatch.Parent.Text}: {selectedDispatch.Text}";
+                        if (_dispatchHistoryDict.ContainsKey(id)) {
+                            Dispatch d = _dispatchHistoryDict[id];
+                            ClearMessageHistory();
+                            AppendMessageHistory(d.Message);
 
-                        historyFromLabel.Enabled = true;
-                        historyToLabel.Enabled = true;
-                        historyRecipientLabel.Text = d.Recipient;
-                        historySenderLabel.Text = d.Sender;
+                            historyFromLabel.Enabled = true;
+                            historyToLabel.Enabled = true;
+                            historyRecipientLabel.Text = d.Recipient;
+                            historySenderLabel.Text = d.Sender;
+                        }
                     }
                 }
             }
