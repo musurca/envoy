@@ -20,19 +20,55 @@ namespace WDS_Dispatches {
                     List<string[]>
                 >();
 
-                // Seven Years War
+                // Renaissance
                 CoalitionEraTracker.CoalitionsByEra.Add(
-                    (1756, 1761),
+                    (1500, 1617),
                     new List<string[]>() {
-                        new string[] { "French", "Austrian", "Russian" },
-                        new string[] { "British", "Prussian" }
+                        new string[] {
+                            "France", "Scotland", "Dutch", "Swiss/Mercenary", 
+                            "Italian States/Mercenary", "Portugal", "Ferrara", "Ottoman Turks"
+                        },
+                        new string[] {
+                            "Imperialist/Spain", "England", "Swiss", "Italian States", 
+                            "Hungary", "Mamelukes", "Navarre/Huguenots"
+                        }
                     }
                 );
+
+                // Thirty Years War
                 CoalitionEraTracker.CoalitionsByEra.Add(
-                    (1762, 1763),
+                    (1618, 1648),
                     new List<string[]>() {
-                        new string[] { "French", "Austrian", "Spanish" },
-                        new string[] { "British", "Prussian", "Russian", "Portuguese" }
+                        new string[] { 
+                            "Imperialist", "Bavaria", "Hapsburg", "Poland", "Spain", "Saxon", "Catholic" 
+                        },
+                        new string[] { 
+                            "Anti-Imperialist", "Bohemia", "Transylvania", "Dutch", "Denmark", 
+                            "Saxon Rebels", "France", "Sweden", "Ottoman Turks" 
+                        }
+                    }
+                );
+
+                // Great Northern War
+                CoalitionEraTracker.CoalitionsByEra.Add(
+                    (1700, 1721),
+                    new List<string[]>() {
+                        new string[] {
+                            "Lithuanian Crown", "Turks", "Sweden", "Poland/Pro-Swedish"
+                        },
+                        new string[] {
+                            "Prussia", "Saxony", "Lithuanian Republic", "Poland/Pro-Russian", 
+                            "Denmark", "Russia"
+                        }
+                    }
+                );
+
+                // Seven Years War
+                CoalitionEraTracker.CoalitionsByEra.Add(
+                    (1756, 1763),
+                    new List<string[]>() {
+                        new string[] { "Sweden", "Reichsarmee", "Russia", "France", "Austria"},
+                        new string[] { "Britain", "Prussia", "Army of Observation" }
                     }
                 );
 

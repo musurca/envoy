@@ -1,0 +1,9 @@
+{
+  "SettingsVersion": 1,
+  "DispatchesPerLeader": 1,
+  "DispatchSpeed": 10,
+  "MinimumDispatchDelay": 2,
+  "ChanceDispatchLost": 2,
+  "UseChainOfCommand": true,
+  "InterdictionChance": 30
+}
