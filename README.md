@@ -21,11 +21,11 @@ PBEM games are supported, as long as they are unencrypted. (In the WDS game, *Se
 ## Version History
 
 v1.11 (11/17/2023)
--added: support for coalition armies in Thirty Years War
--added: support for coalition armies in Great Northern War
--added: support for coalition armies in The Renaissance
--added: preset for 17th century warfare
--fixed: support for coalition armies in Seven Years War
+- added: support for coalition armies in Thirty Years War
+- added: support for coalition armies in Great Northern War
+- added: support for coalition armies in The Renaissance
+- added: preset for 17th century warfare
+- fixed: support for coalition armies in Seven Years War
 
 v1.1 (11/7/2023)
 - added: history of dispatches sent & received
