@@ -1,6 +1,6 @@
 # Envoy
 ![screenshot](https://i.imgur.com/qvhJfDo.jpg)
-**[DOWNLOAD LATEST RELEASE (v1.1)](https://wargameds.s3.amazonaws.com/downloads/Envoy_v1.1.zip)**
+**[DOWNLOAD LATEST RELEASE (v1.11)](https://github.com/musurca/envoy/releases/download/1.11/Envoy_v1.11.zip)**
 
 **Envoy** is a utility for [Wargame Design Studio](http://www.wargameds.com)’s series of historical wargames that simulates command and control with order delay. Often, decisive battles turned not on weapons and men, but on time and information: who knew what, and when? Were the correct orders issued—and received in time to make a difference?
 
@@ -19,6 +19,13 @@ A full [manual](https://github.com/musurca/envoy/blob/master/manual/Envoy_Manual
 PBEM games are supported, as long as they are unencrypted. (In the WDS game, *Settings -> PBEM Encryption* should be unchecked.)
 
 ## Version History
+
+v1.11 (11/17/2023)
+-added: support for coalition armies in Thirty Years War
+-added: support for coalition armies in Great Northern War
+-added: support for coalition armies in The Renaissance
+-added: preset for 17th century warfare
+-fixed: support for coalition armies in Seven Years War
 
 v1.1 (11/7/2023)
 - added: history of dispatches sent & received
