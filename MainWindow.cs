@@ -788,6 +788,8 @@ namespace WDS_Dispatches
                         _scenarioData.PopulateUI();
                     }
 
+                    PopulateDispatchHistory();
+
                     if (_dispatchState.CurrentTurn < _scenarioData.GetCurrentTurn()) {
                         UpdateDispatchState();
                     }
@@ -806,8 +808,6 @@ namespace WDS_Dispatches
                     btnCustomSender.Enabled = true;
                     sentHistoryTree.Enabled = true;
                     receivedHistoryTree.Enabled = true;
-
-                    PopulateDispatchHistory();
 
                     if (_fileTimer != null) {
                         _fileTimer.Stop();
