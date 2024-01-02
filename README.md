@@ -1,6 +1,6 @@
 # Envoy
 ![screenshot](https://i.imgur.com/qvhJfDo.jpg)
-**[DOWNLOAD LATEST RELEASE (v1.11)](https://github.com/musurca/envoy/releases/download/1.12/Envoy_v1.12.zip)**
+**[DOWNLOAD LATEST RELEASE (v1.12)](https://github.com/musurca/envoy/releases/download/1.12/Envoy_v1.12.zip)**
 
 **Envoy** is a utility for [Wargame Design Studio](http://www.wargameds.com)’s series of historical wargames that simulates command and control with order delay. Often, decisive battles turned not on weapons and men, but on time and information: who knew what, and when? Were the correct orders issued—and received in time to make a difference?
 
