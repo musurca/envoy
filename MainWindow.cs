@@ -611,7 +611,6 @@ namespace WDS_Dispatches
         private void UpdateDispatchHistory(int turn, List<Dispatch> turnDispatches) {
             lock (_dispatchHistoryThreadLock) {
                 TreeViewUtil.treeBeginUpdate(receivedHistoryTree);
-                TreeViewUtil.treeClear(receivedHistoryTree);
                 if (turnDispatches.Count > 0) {
                     string turnHeader = $"Turn {turn}";
                     TreeNode turnNode = TreeViewUtil.treeAdd(receivedHistoryTree, turnHeader);

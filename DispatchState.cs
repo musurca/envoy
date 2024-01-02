@@ -377,7 +377,9 @@ namespace WDS_Dispatches
         private void AdvanceTurn() {
             CurrentTurn++;
 
-            NumDispatchesSent.Add(CurrentTurn, new Dictionary<string, int>());
+            if (!NumDispatchesSent.ContainsKey(CurrentTurn)) {
+                NumDispatchesSent.Add(CurrentTurn, new Dictionary<string, int>());
+            }
 
             List<Dispatch> dispatchesReceivedThisTurn = new List<Dispatch>();
 
