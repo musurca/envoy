@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
+using System.Text.RegularExpressions;
 
 namespace WDS_Dispatches {
     public class ScenarioReader {
@@ -589,62 +590,50 @@ namespace WDS_Dispatches {
 
             string map_metadata = ReadString(map);
 
-            // Now read terrain and height data, then ignore it
-            for (int i = 0; i < 2*height; i++) {
-                ReadString(map);
-            }
-
-            int layers = fileVersion == 1 ? 10 : 12;
-
-            // Read layer data, then ignore it
-            for (int j = 0; j < layers; j++) {
-                if (ReadNum(map) == 1 ) {
-                    for (int i = 0; i < height; i++) {
-                        ReadString(map);
-                    }
-                }
-            }
-
+            // Find and parse objective lines
             _objectives.Clear();
-            string objective_str = ReadString(map);
-            while(objective_str != null) {
-                string[] items = objective_str.Split();
-                if (items.Count() > 5) {
-                    string objective_name = items[5];
-                    for (int i = 6; i < items.Count(); i++) {
-                        objective_name = objective_name + " " + items[i];
-                    }
+            // Finds a string preceded by two floats and three or more ints
+            string objective_pattern = @"^(-?[0-9]+.[0-9]+\s+){2}(-?[0-9]+\s+){3,}([\S|\s]+)$";
+            Regex regex = new Regex(objective_pattern, RegexOptions.Compiled);
+            do {
+                string line = ReadString(map);
+                if (line == null) {
+                    break;
+                }
 
-                    float obj_x = -1.0f;
-                    float obj_y = -1.0f;
-                    try {
-                        obj_x = float.Parse(items[0], CultureInfo.InvariantCulture.NumberFormat);
-                        obj_y = float.Parse(items[1], CultureInfo.InvariantCulture.NumberFormat);
-                    } catch(Exception) {
-                        MessageBox.Show(
-                            "Error reading location of objective " + objective_name + "!",
-                            "Error",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error
-                        );
-                        return false;
-                    }
+                try {
+                    Match match = regex.Match(line);
+                    if (match.Success && match.Groups.Count == 4) { // It's an objective line
+                        // The objective name will always be the final group
+                        string objective_name = match.Groups[3].Captures[0].ToString().Trim();
 
-                    if (x != -1) {
-                        if (obj_x < x || obj_x > (x + w) || obj_y < y || obj_y > (y + h)) {
-                            objective_str = ReadString(map);
+                        string[] items = line.Split();
+
+                        float obj_x = -1.0f;
+                        float obj_y = -1.0f;
+                        try {
+                            obj_x = float.Parse(items[0], CultureInfo.InvariantCulture.NumberFormat);
+                            obj_y = float.Parse(items[1], CultureInfo.InvariantCulture.NumberFormat);
+                        } catch (Exception) {
+                            // If there's an error parsing the objective's coordinates, skip it
                             continue;
                         }
-                    }
 
-                    // No duplicate objective names
-                    if (!_objectives.Contains(objective_name)) {
-                        _objectives.Add(objective_name);
-                    }
-                }
+                        if (x != -1) {
+                            // Determine whether the objective is within the submap
+                            if (obj_x < x || obj_x > (x + w) || obj_y < y || obj_y > (y + h)) {
+                                continue;
+                            }
+                        }
 
-                objective_str = ReadString(map);
-            }
+                        // No duplicate objective names
+                        if (!_objectives.Contains(objective_name)) {
+                            _objectives.Add(objective_name);
+                        }
+                    }
+                } catch(Exception) {}
+                
+            } while (true);
 
             return true;
         }
