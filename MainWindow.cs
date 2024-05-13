@@ -35,6 +35,7 @@ namespace WDS_Dispatches
 
         private object _dispatchHistoryThreadLock = new object();
         private Dictionary<string, Dispatch> _dispatchHistoryDict;
+        private Dictionary<string, StandingOrder> _standingOrderDict;
 
         private object _dispatchStateThreadLock = new object();
         private DispatchState _dispatchState;
@@ -165,17 +166,43 @@ namespace WDS_Dispatches
                         _dispatchState.Settings.DispatchesPerLeader
                     );
 
+                    if (btnStandingOrder.InvokeRequired) {
+                        btnStandingOrder.Invoke((MethodInvoker)(() => btnStandingOrder.Visible = false));
+                    } else {
+                        btnStandingOrder.Visible = false;
+                    }
+                    
                     if (_curRecipient != null) {
                         Location recipLoc = (Location)_curRecipient["location"];
                         Location senderLoc = (Location)_curSender["location"];
 
+                        string senderName = GetSender();
+                        string receipName = GetRecipient();
+
                         if (!recipLoc.IsPresent() || !senderLoc.IsPresent()) {
                             canSendDispatches = false;
                             DisableSending();
-                        }
-
-                        string senderName = GetSender();
-                        string receipName = GetRecipient();
+                        } else {
+                            // Enable Standing Order button if it's the first turn
+                            if (_scenarioData.GetCurrentTurn() == 1) {
+                                if (btnStandingOrder.InvokeRequired) {
+                                    btnStandingOrder.Invoke((MethodInvoker)(() => btnStandingOrder.Visible = true));
+                                } else {
+                                    btnStandingOrder.Visible = true;
+                                }
+                                string btntext;
+                                if (_dispatchState.GetStandingOrder(senderName, receipName) == null) {
+                                    btntext = "Set Standing Order";
+                                } else {
+                                    btntext = "Clear Standing Order";
+                                }
+                                if (btnStandingOrder.InvokeRequired) {
+                                    btnStandingOrder.Invoke((MethodInvoker)(() => btnStandingOrder.Text = btntext));
+                                } else {
+                                    btnStandingOrder.Text = btntext;
+                                }
+                            }
+                        }    
 
                         Dispatch curDispatch = _dispatchState.FindDispatch(
                             senderName,
@@ -570,10 +597,22 @@ namespace WDS_Dispatches
         private void PopulateDispatchHistory() {
             lock (_dispatchHistoryThreadLock) {
                 _dispatchHistoryDict = new Dictionary<string, Dispatch>();
+                _standingOrderDict = new Dictionary<string, StandingOrder>();
 
                 // Build received history from confirmed received messages
                 TreeViewUtil.treeBeginUpdate(receivedHistoryTree);
                 TreeViewUtil.treeClear(receivedHistoryTree);
+
+                // Standing Orders
+                string standingOrderHeader = "Standing Orders";
+                TreeNode orderNode = TreeViewUtil.treeAdd(receivedHistoryTree, standingOrderHeader);
+                foreach (StandingOrder order in _dispatchState.StandingOrders) {
+                    string messageId = $"{order.Recipient} <- {order.Sender}";
+                    TreeViewUtil.treeNodeAdd(receivedHistoryTree, orderNode, messageId);
+                    _standingOrderDict.Add($"{standingOrderHeader}: {messageId}", order);
+                }
+
+                // Dispatches
                 foreach (int turn in _dispatchState.DispatchesReceived.Keys) {
                     List<Dispatch> turnDispatches = _dispatchState.DispatchesReceived[turn];
                     if (turnDispatches.Count > 0) {
@@ -592,6 +631,15 @@ namespace WDS_Dispatches
                 SortedDictionary<int, List<Dispatch>> sentDispatches = _dispatchState.GetDispatchesSent();
                 TreeViewUtil.treeBeginUpdate(sentHistoryTree);
                 TreeViewUtil.treeClear(sentHistoryTree);
+                // Standing orders
+                orderNode = TreeViewUtil.treeAdd(sentHistoryTree, standingOrderHeader);
+                foreach (StandingOrder order in _dispatchState.StandingOrders) {
+                    string messageId = $"{order.Sender} -> {order.Recipient}";
+                    TreeViewUtil.treeNodeAdd(sentHistoryTree, orderNode, messageId);
+                    _standingOrderDict.Add($"{standingOrderHeader}: {messageId}", order);
+                }
+
+                // Dispatches
                 foreach (int turn in sentDispatches.Keys) {
                     List<Dispatch> turnDispatches = sentDispatches[turn];
                     if (turnDispatches.Count > 0) {
@@ -1070,6 +1118,15 @@ namespace WDS_Dispatches
                             historyToLabel.Enabled = true;
                             historyRecipientLabel.Text = d.Recipient;
                             historySenderLabel.Text = d.Sender;
+                        } else if (_standingOrderDict.ContainsKey(id)) {
+                            StandingOrder so = _standingOrderDict[id];
+                            ClearMessageHistory();
+                            AppendMessageHistory(so.Message);
+
+                            historyFromLabel.Enabled = true;
+                            historyToLabel.Enabled = true;
+                            historyRecipientLabel.Text = so.Recipient;
+                            historySenderLabel.Text = so.Sender;
                         }
                     }
                 }
@@ -1093,6 +1150,15 @@ namespace WDS_Dispatches
                             historyToLabel.Enabled = true;
                             historyRecipientLabel.Text = d.Recipient;
                             historySenderLabel.Text = d.Sender;
+                        } else if(_standingOrderDict.ContainsKey(id)) {
+                            StandingOrder so = _standingOrderDict[id];
+                            ClearMessageHistory();
+                            AppendMessageHistory(so.Message);
+
+                            historyFromLabel.Enabled = true;
+                            historyToLabel.Enabled = true;
+                            historyRecipientLabel.Text = so.Recipient;
+                            historySenderLabel.Text = so.Sender;
                         }
                     }
                 }
@@ -1101,6 +1167,23 @@ namespace WDS_Dispatches
 
         private void copyToolStripMenuItem_Click_1(object sender, EventArgs e) {
             boxMessageHistory.Copy();
+        }
+
+        private void btnStandingOrder_Click(object sender, EventArgs e) {
+            if (_dispatchState != null) {
+                if (_scenarioData.GetCurrentTurn() == 1) {
+                    string msg_sender = GetSender();
+                    string msg_recipient = GetRecipient();
+                    if (_dispatchState.GetStandingOrder(msg_sender, msg_recipient) == null) {
+                        _dispatchState.AddStandingOrder(msg_sender, msg_recipient, messageBody.Text);
+                    } else {
+                        _dispatchState.RemoveStandingOrder(msg_sender, msg_recipient);
+                    }
+
+                    UpdateSelection();
+                    PopulateDispatchHistory();
+                }
+            }
         }
     }
 }

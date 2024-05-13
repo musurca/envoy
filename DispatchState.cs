@@ -7,6 +7,29 @@ using Newtonsoft.Json;
 
 namespace WDS_Dispatches
 {
+    public class StandingOrder {
+        [JsonProperty("recipient")]
+        public string Recipient { get; set; }
+
+        [JsonProperty("sender")]
+        public string Sender { get; set; }
+
+        [JsonProperty("message")]
+        public string Message { get; set; }
+
+        public StandingOrder() {
+            Recipient = "";
+            Sender = "";
+            Message = "";
+        }
+
+        public StandingOrder(string sender, string recipient, string message) {
+            this.Sender = sender;
+            this.Recipient = recipient;
+            this.Message = message;
+        }
+    }
+
     public class Dispatch {
         [JsonProperty("recipient")]
         public string Recipient { get; set; }
@@ -95,6 +118,9 @@ namespace WDS_Dispatches
         [JsonProperty("dispatches_sent")]
         public Dictionary<int, Dictionary<string, int>> NumDispatchesSent { get; set; }
 
+        [JsonProperty("standing_orders")]
+        public List<StandingOrder> StandingOrders { get; set; }
+
         [JsonProperty("current_turn")]
         public int CurrentTurn { get; set; }
 
@@ -121,6 +147,7 @@ namespace WDS_Dispatches
             DispatchesReceived = new Dictionary<int, List<Dispatch>>();
             DispatchesLost = new Dictionary<int, List<Dispatch>>();
             NumDispatchesSent = new Dictionary<int, Dictionary<string, int>>();
+            StandingOrders = new List<StandingOrder>();
         }
 
         public DispatchState(ScenarioData sd) {
@@ -128,6 +155,7 @@ namespace WDS_Dispatches
             DispatchesReceived = new Dictionary<int, List<Dispatch>>();
             DispatchesLost = new Dictionary<int, List<Dispatch>>();
             NumDispatchesSent = new Dictionary<int, Dictionary<string, int>>();
+            StandingOrders = new List<StandingOrder>();
 
             SetScenarioData(sd);
 
@@ -311,6 +339,34 @@ namespace WDS_Dispatches
             }
 
             return null;
+        }
+
+        public bool AddStandingOrder(string sender, string recipient, string message) {
+            foreach(StandingOrder so in StandingOrders) {
+                if (so.Sender == sender && so.Recipient == recipient) {
+                    return false;
+                }
+            }
+
+            StandingOrders.Add(new StandingOrder(sender, recipient, message));
+            return true;
+        }
+
+        public StandingOrder GetStandingOrder(string sender, string recipient) {
+            foreach (StandingOrder s in StandingOrders) {
+                if (s.Sender == sender && s.Recipient == recipient) {
+                    return s;
+                }
+            }
+
+            return null;
+        }
+
+        public void RemoveStandingOrder(string sender, string recipient) {
+            StandingOrder so = GetStandingOrder(sender, recipient);
+            if (so != null) {
+                StandingOrders.Remove(so);
+            }
         }
 
         public bool SendDispatch(

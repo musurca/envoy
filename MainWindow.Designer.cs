@@ -59,6 +59,8 @@ namespace WDS_Dispatches
             this.btnCustomSender = new System.Windows.Forms.Button();
             this.treeSender = new System.Windows.Forms.TreeView();
             this.boxMessageHistory = new System.Windows.Forms.RichTextBox();
+            this.messageHistoryContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuMain = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -98,11 +100,11 @@ namespace WDS_Dispatches
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.sentHistoryTree = new System.Windows.Forms.TreeView();
             this.historyFromLabel = new System.Windows.Forms.Label();
-            this.messageHistoryContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnStandingOrder = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabRecipient.SuspendLayout();
             this.tabSender.SuspendLayout();
+            this.messageHistoryContextMenu.SuspendLayout();
             this.menuMain.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -111,7 +113,6 @@ namespace WDS_Dispatches
             this.tabControl2.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
-            this.messageHistoryContextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // treeRecipient
@@ -253,6 +254,20 @@ namespace WDS_Dispatches
             this.boxMessageHistory.Size = new System.Drawing.Size(355, 148);
             this.boxMessageHistory.TabIndex = 0;
             this.boxMessageHistory.Text = "";
+            // 
+            // messageHistoryContextMenu
+            // 
+            this.messageHistoryContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.copyToolStripMenuItem});
+            this.messageHistoryContextMenu.Name = "messageHistoryContextMenu";
+            this.messageHistoryContextMenu.Size = new System.Drawing.Size(103, 26);
+            // 
+            // copyToolStripMenuItem
+            // 
+            this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
+            this.copyToolStripMenuItem.Text = "Copy";
+            this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click_1);
             // 
             // menuMain
             // 
@@ -419,6 +434,7 @@ namespace WDS_Dispatches
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.BackColor = System.Drawing.Color.Gainsboro;
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.btnStandingOrder);
             this.panel1.Controls.Add(this.barDispatchLabel);
             this.panel1.Controls.Add(this.labelDispatchETA);
             this.panel1.Controls.Add(this.labelMessageSender);
@@ -641,19 +657,17 @@ namespace WDS_Dispatches
             this.historyFromLabel.TabIndex = 15;
             this.historyFromLabel.Text = "From:";
             // 
-            // messageHistoryContextMenu
+            // btnStandingOrder
             // 
-            this.messageHistoryContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.copyToolStripMenuItem});
-            this.messageHistoryContextMenu.Name = "messageHistoryContextMenu";
-            this.messageHistoryContextMenu.Size = new System.Drawing.Size(103, 26);
-            // 
-            // copyToolStripMenuItem
-            // 
-            this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
-            this.copyToolStripMenuItem.Text = "Copy";
-            this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click_1);
+            this.btnStandingOrder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnStandingOrder.Location = new System.Drawing.Point(162, 424);
+            this.btnStandingOrder.Name = "btnStandingOrder";
+            this.btnStandingOrder.Size = new System.Drawing.Size(118, 23);
+            this.btnStandingOrder.TabIndex = 15;
+            this.btnStandingOrder.Text = "Make Standing Order";
+            this.btnStandingOrder.UseVisualStyleBackColor = true;
+            this.btnStandingOrder.Visible = false;
+            this.btnStandingOrder.Click += new System.EventHandler(this.btnStandingOrder_Click);
             // 
             // MainWindow
             // 
@@ -680,6 +694,7 @@ namespace WDS_Dispatches
             this.tabControl1.ResumeLayout(false);
             this.tabRecipient.ResumeLayout(false);
             this.tabSender.ResumeLayout(false);
+            this.messageHistoryContextMenu.ResumeLayout(false);
             this.menuMain.ResumeLayout(false);
             this.menuMain.PerformLayout();
             this.groupBox1.ResumeLayout(false);
@@ -691,7 +706,6 @@ namespace WDS_Dispatches
             this.tabControl2.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
-            this.messageHistoryContextMenu.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -757,6 +771,7 @@ namespace WDS_Dispatches
         private ToolStripMenuItem newToolStripMenuItem;
         private ContextMenuStrip messageHistoryContextMenu;
         private ToolStripMenuItem copyToolStripMenuItem;
+        private Button btnStandingOrder;
     }
 }
 
