@@ -1180,6 +1180,8 @@ namespace WDS_Dispatches
                         _dispatchState.RemoveStandingOrder(msg_sender, msg_recipient);
                     }
 
+                    SaveDispatch();
+
                     UpdateSelection();
                     PopulateDispatchHistory();
                 }
