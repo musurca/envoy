@@ -1,6 +1,6 @@
 # Envoy
 ![screenshot](https://i.imgur.com/qvhJfDo.jpg)
-**[DOWNLOAD LATEST RELEASE (v1.12)](https://github.com/musurca/envoy/releases/download/1.12/Envoy_v1.12.zip)**
+**[DOWNLOAD LATEST RELEASE (v1.13)](https://github.com/musurca/envoy/releases/download/1.13/Envoy_v1.13.zip)**
 
 **Envoy** is a utility for [Wargame Design Studio](http://www.wargameds.com)’s series of historical wargames that simulates command and control with order delay. Often, decisive battles turned not on weapons and men, but on time and information: who knew what, and when? Were the correct orders issued—and received in time to make a difference?
 
@@ -14,11 +14,15 @@ A full [manual](https://github.com/musurca/envoy/blob/master/manual/Envoy_Manual
 
 ## Compatibility
 
-**Envoy** is only compatible with the WDS Musket & Pike, Napoleonic, and Civil War Battles series. The Panzer & Modern Campaigns series are not currently supported. The Early American Wars series is not currently supported, but will likely work automatically after those games receive their post-4.02 update from WDS.
+**Envoy** is only compatible with the WDS Musket & Pike, Napoleonic, Civil War Battles, and Sword & Siege series. The Panzer/Modern Campaigns series are not currently supported. The Early American Wars series is not currently supported, but will likely work automatically after those games receive their post-4.02 update from WDS.
 
 PBEM games are supported, as long as they are unencrypted. (In the WDS game, *Settings -> PBEM Encryption* should be unchecked.)
 
 ## Version History
+
+v1.13 (05/26/2025)
+- added: Standing Orders
+- fixed: parsing errors with new WDS file format
 
 v1.12 (01/02/2024)
 - fixed: crash bug when a message is delivered at application start
